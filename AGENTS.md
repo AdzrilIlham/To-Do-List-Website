@@ -1,7 +1,7 @@
 # AGENTS.md
 
 ## Commands
-- `npm run dev`: Start Vite dev server (`http://localhost:5173`)
+- `npm run dev`: Start Vite dev server (`http://localhost:5174`)
 - `npm run build`: Build production assets into `dist/`
 - `npm run lint`: Run code linter (`oxlint`)
 - `npm run preview`: Preview built production app locally

@@ -8,7 +8,7 @@ import ConfirmDeleteModal from '../ui/ConfirmDeleteModal';
 import { useTaskContext } from '../../context/TaskContext';
 
 const TaskCard = memo(function TaskCard({ task, index = 0, onEdit, selected, onSelect }) {
-  const { toggleTask, deleteTaskWithUndo, addToast } = useTaskContext();
+  const { toggleTask, deleteTask, addToast } = useTaskContext();
   const navigate = useNavigate();
   const [showDelete, setShowDelete] = useState(false);
 
@@ -17,9 +17,15 @@ const TaskCard = memo(function TaskCard({ task, index = 0, onEdit, selected, onS
   const dueSoon = isDueSoon(task.deadline);
   const pastDue = isPastDue(task.deadline) && !task.completed;
 
-  const handleDelete = () => {
-    deleteTaskWithUndo(task.id, addToast);
-    setShowDelete(false);
+  const handleDelete = async () => {
+    try {
+      await deleteTask(task.id);
+      addToast('Tugas berhasil dihapus', 'info');
+    } catch {
+      addToast('Gagal menghapus tugas dari Supabase', 'error');
+    } finally {
+      setShowDelete(false);
+    }
   };
 
   const handleToggle = () => {

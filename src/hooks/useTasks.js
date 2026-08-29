@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { isToday, isPastDue } from '../utils/helper';
 import { filterTasks, sortTasks } from '../utils/filter';
 import { taskService } from '../services/taskService';
@@ -17,7 +17,6 @@ export function useTasks() {
   });
   const [sortBy, setSortBy] = useState('newest');
   const [selectedIds, setSelectedIds] = useState([]);
-  const deletedRef = useRef(null);
 
   const fetchTasks = useCallback(async () => {
     if (!user) {
@@ -114,42 +113,10 @@ export function useTasks() {
   }, [tasks]);
 
   const deleteTaskWithUndo = useCallback(async (id, addToast) => {
-    const task = tasks.find((t) => t.id === id);
-    if (!task) return;
-
-    deletedRef.current = task;
-    setTasks((prev) => prev.filter((t) => t.id !== id));
-
-    let timerId = null;
-
-    const commitDelete = async () => {
-      if (deletedRef.current && deletedRef.current.id === id) {
-        try {
-          await taskService.deleteTask(id);
-        } catch (err) {
-          console.error('Gagal menghapus tugas dari server:', err);
-        } finally {
-          deletedRef.current = null;
-        }
-      }
-    };
-
-    timerId = setTimeout(commitDelete, 5000);
-
-    if (addToast) {
-      addToast('Tugas dihapus. Ketuk "Urungkan" untuk membatalkan.', 'warning', {
-        label: 'Urungkan',
-        onClick: () => {
-          if (timerId) clearTimeout(timerId);
-          if (deletedRef.current) {
-            setTasks((prev) => [deletedRef.current, ...prev]);
-            deletedRef.current = null;
-            if (addToast) addToast('Tugas dikembalikan!', 'success');
-          }
-        },
-      });
-    }
-  }, [tasks]);
+    return deleteTask(id).then(() => {
+      if (addToast) addToast('Tugas dihapus', 'info');
+    });
+  }, [deleteTask]);
 
   const toggleTask = useCallback(async (id) => {
     const currentTask = tasks.find((t) => t.id === id);

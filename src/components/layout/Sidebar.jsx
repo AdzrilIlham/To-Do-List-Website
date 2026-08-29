@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiGrid, FiCalendar, FiBarChart2, FiSettings, FiX, FiCheckSquare, FiClock, FiArchive, FiLogOut, FiUser } from 'react-icons/fi';
+import { FiGrid, FiCalendar, FiBarChart2, FiSettings, FiX, FiClock, FiArchive, FiLogOut, FiUser } from 'react-icons/fi';
 import { useTaskContext } from '../../context/TaskContext';
 import { useAuth } from '../../context/AuthContext';
 
@@ -35,11 +35,9 @@ export default function Sidebar() {
   const sidebarContent = (
     <div className="flex flex-col h-full">
       <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-100 dark:border-dark-border">
-        <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
-          <FiCheckSquare size={18} className="text-white" />
-        </div>
+        <img src="/favicon-32x32.png" alt="ToDoo Logo" className="w-9 h-9 object-contain" />
         <div>
-          <h1 className="text-lg font-bold text-gray-900 dark:text-dark-text tracking-tight">TaskFlow</h1>
+          <h1 className="text-lg font-bold text-gray-900 dark:text-dark-text tracking-tight">ToDoo</h1>
           <p className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">Manage your tasks</p>
         </div>
       </div>
@@ -94,7 +92,7 @@ export default function Sidebar() {
           </div>
         )}
         <p className="text-[10px] text-gray-400 dark:text-gray-500 text-center">
-          TaskFlow v1.0.0
+          ToDoo v1.0.0
         </p>
       </div>
     </div>

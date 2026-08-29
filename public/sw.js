@@ -1,4 +1,4 @@
-const CACHE_NAME = 'taskflow-v3';
+const CACHE_NAME = 'taskflow-v4';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

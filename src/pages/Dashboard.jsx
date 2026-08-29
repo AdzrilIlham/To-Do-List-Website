@@ -26,7 +26,7 @@ export default function Dashboard() {
       if (deadline > now && deadline < in24h) {
         new Notification('TaskFlow - Deadline Mendekat!', {
           body: `"${task.title}" deadline dalam kurang dari 24 jam!`,
-          icon: '/favicon.svg',
+          icon: '/favicon-32x32.png',
         });
         notifiedRef.current.add(task.id);
       }
