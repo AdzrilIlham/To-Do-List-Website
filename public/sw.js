@@ -1,4 +1,4 @@
-const CACHE_NAME = 'taskflow-v1';
+const CACHE_NAME = 'taskflow-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -25,6 +25,8 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+
+  if (event.request.url.includes('supabase.co')) return;
 
   if (event.request.mode === 'navigate') {
     event.respondWith(
