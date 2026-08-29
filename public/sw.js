@@ -1,8 +1,11 @@
-const CACHE_NAME = 'taskflow-v2';
+const CACHE_NAME = 'taskflow-v3';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
-  '/favicon.svg',
+  '/favicon.ico',
+  '/favicon-32x32.png',
+  '/favicon-16x16.png',
+  '/apple-touch-icon.png',
 ];
 
 self.addEventListener('install', (event) => {
