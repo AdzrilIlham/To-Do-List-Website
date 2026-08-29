@@ -1,8 +1,10 @@
-import { FiSearch, FiMenu, FiSun, FiMoon } from 'react-icons/fi';
+import { FiSearch, FiMenu, FiSun, FiMoon, FiLogOut, FiUser } from 'react-icons/fi';
 import { useTaskContext } from '../../context/TaskContext';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Navbar() {
   const { filters, setFilters, theme, toggleTheme, setSidebarOpen } = useTaskContext();
+  const { user, signOut } = useAuth();
 
   return (
     <header className="sticky top-0 z-20 bg-white/80 dark:bg-dark-card/80 backdrop-blur-xl border-b border-gray-100 dark:border-dark-border">
@@ -32,7 +34,14 @@ export default function Navbar() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 sm:gap-3">
+          {user && (
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gray-50 dark:bg-dark-surface border border-gray-100 dark:border-dark-border text-xs text-gray-600 dark:text-gray-300">
+              <FiUser size={14} className="text-gray-400" />
+              <span className="max-w-[120px] truncate">{user.email}</span>
+            </div>
+          )}
+
           <button
             onClick={toggleTheme}
             aria-label={theme === 'dark' ? 'Ganti ke mode terang' : 'Ganti ke mode gelap'}
@@ -41,6 +50,18 @@ export default function Navbar() {
           >
             {theme === 'dark' ? <FiSun size={18} /> : <FiMoon size={18} />}
           </button>
+
+          {user && (
+            <button
+              onClick={signOut}
+              title="Keluar"
+              aria-label="Keluar dari akun"
+              className="flex items-center gap-1.5 p-2.5 sm:px-3 sm:py-2 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer text-xs font-medium"
+            >
+              <FiLogOut size={18} />
+              <span className="hidden sm:inline">Keluar</span>
+            </button>
+          )}
         </div>
       </div>
     </header>

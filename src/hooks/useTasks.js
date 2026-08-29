@@ -2,8 +2,10 @@ import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { isToday, isPastDue } from '../utils/helper';
 import { filterTasks, sortTasks } from '../utils/filter';
 import { taskService } from '../services/taskService';
+import { useAuth } from '../context/AuthContext';
 
 export function useTasks() {
+  const { user } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -18,6 +20,11 @@ export function useTasks() {
   const deletedRef = useRef(null);
 
   const fetchTasks = useCallback(async () => {
+    if (!user) {
+      setTasks([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -29,7 +36,7 @@ export function useTasks() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     fetchTasks();
@@ -66,14 +73,14 @@ export function useTasks() {
     };
 
     try {
-      const created = await taskService.createTask(payload);
+      const created = await taskService.createTask(payload, user?.id);
       setTasks((prev) => [created, ...prev]);
       return created;
     } catch (err) {
       console.error('Gagal membuat tugas:', err);
       throw err;
     }
-  }, []);
+  }, [user?.id]);
 
   const updateTask = useCallback(async (id, updates) => {
     const currentTask = tasks.find((t) => t.id === id);
@@ -195,14 +202,14 @@ export function useTasks() {
           notes: currentTask.notes || '',
         };
 
-        const createdRecurring = await taskService.createTask(recurringTask);
+        const createdRecurring = await taskService.createTask(recurringTask, user?.id);
         setTasks((prev) => [createdRecurring, ...prev]);
       }
     } catch (err) {
       console.error('Gagal toggle tugas:', err);
       setTasks((prev) => prev.map((t) => (t.id === id ? currentTask : t)));
     }
-  }, [tasks]);
+  }, [tasks, user?.id]);
 
   const batchComplete = useCallback(async () => {
     if (selectedIds.length === 0) return;

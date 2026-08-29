@@ -2,6 +2,7 @@ import { supabase } from '../lib/supabase';
 
 export const mapTaskFromSupabase = (row) => ({
   id: row.id,
+  userId: row.user_id,
   title: row.title,
   description: row.description || '',
   deadline: row.deadline,
@@ -32,6 +33,7 @@ export const mapTaskToSupabase = (task) => {
   };
 
   if (task.id) payload.id = task.id;
+  if (task.userId) payload.user_id = task.userId;
   if (task.createdAt) payload.created_at = task.createdAt;
 
   return payload;
@@ -48,8 +50,9 @@ export const taskService = {
     return (data || []).map(mapTaskFromSupabase);
   },
 
-  async createTask(taskData) {
+  async createTask(taskData, userId) {
     const payload = mapTaskToSupabase(taskData);
+    if (userId) payload.user_id = userId;
     const { data, error } = await supabase
       .from('tasks')
       .insert(payload)

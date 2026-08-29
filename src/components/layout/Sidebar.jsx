@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiGrid, FiCalendar, FiBarChart2, FiSettings, FiX, FiCheckSquare, FiClock, FiArchive } from 'react-icons/fi';
+import { FiGrid, FiCalendar, FiBarChart2, FiSettings, FiX, FiCheckSquare, FiClock, FiArchive, FiLogOut, FiUser } from 'react-icons/fi';
 import { useTaskContext } from '../../context/TaskContext';
+import { useAuth } from '../../context/AuthContext';
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: FiGrid },
@@ -15,6 +16,7 @@ const navItems = [
 
 export default function Sidebar() {
   const { sidebarOpen, setSidebarOpen } = useTaskContext();
+  const { user, signOut } = useAuth();
   const location = useLocation();
 
   useEffect(() => {
@@ -75,7 +77,22 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div className="px-6 py-4 border-t border-gray-100 dark:border-dark-border">
+      <div className="p-4 border-t border-gray-100 dark:border-dark-border space-y-3">
+        {user && (
+          <div className="flex items-center justify-between px-2">
+            <div className="flex items-center gap-2 overflow-hidden text-xs text-gray-600 dark:text-gray-400">
+              <FiUser size={14} className="shrink-0" />
+              <span className="truncate">{user.email}</span>
+            </div>
+            <button
+              onClick={signOut}
+              title="Keluar"
+              className="text-red-500 hover:text-red-600 p-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition cursor-pointer"
+            >
+              <FiLogOut size={16} />
+            </button>
+          </div>
+        )}
         <p className="text-[10px] text-gray-400 dark:text-gray-500 text-center">
           TaskFlow v1.0.0
         </p>
