@@ -1,13 +1,12 @@
-import { useState, useCallback, useMemo, useRef } from 'react';
-import { useLocalStorage } from './useLocalStorage';
-import { generateId, getDefaultTasks, isToday, isPastDue } from '../utils/helper';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { isToday, isPastDue } from '../utils/helper';
 import { filterTasks, sortTasks } from '../utils/filter';
-import { STORAGE_KEYS } from '../utils/storage';
-
-const INITIAL_TASKS = getDefaultTasks();
+import { taskService } from '../services/taskService';
 
 export function useTasks() {
-  const [tasks, setTasks] = useLocalStorage(STORAGE_KEYS.TASKS, INITIAL_TASKS);
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
     search: '',
     priority: '',
@@ -17,6 +16,24 @@ export function useTasks() {
   const [sortBy, setSortBy] = useState('newest');
   const [selectedIds, setSelectedIds] = useState([]);
   const deletedRef = useRef(null);
+
+  const fetchTasks = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await taskService.fetchTasks();
+      setTasks(data);
+    } catch (err) {
+      console.error('Gagal mengambil tugas dari Supabase:', err);
+      setError(err.message || 'Gagal memuat tugas');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
 
   const filteredTasks = useMemo(() => {
     return sortTasks(filterTasks(tasks, filters), sortBy);
@@ -32,9 +49,8 @@ export function useTasks() {
     return { total, completed, pending, todayTasks, overdue, progress };
   }, [tasks]);
 
-  const addTask = useCallback((taskData) => {
-    const newTask = {
-      id: generateId(),
+  const addTask = useCallback(async (taskData) => {
+    const payload = {
       title: taskData.title,
       description: taskData.description || '',
       deadline: taskData.deadline,
@@ -48,64 +64,108 @@ export function useTasks() {
       recurrence: taskData.recurrence || null,
       notes: taskData.notes || '',
     };
-    setTasks((prev) => [newTask, ...prev]);
-    return newTask;
-  }, [setTasks]);
 
-  const updateTask = useCallback((id, updates) => {
-    setTasks((prev) =>
-      prev.map((task) =>
-        task.id === id
-          ? { ...task, ...updates, updatedAt: new Date().toISOString() }
-          : task
-      )
-    );
-  }, [setTasks]);
+    try {
+      const created = await taskService.createTask(payload);
+      setTasks((prev) => [created, ...prev]);
+      return created;
+    } catch (err) {
+      console.error('Gagal membuat tugas:', err);
+      throw err;
+    }
+  }, []);
 
-  const deleteTask = useCallback((id) => {
+  const updateTask = useCallback(async (id, updates) => {
+    const currentTask = tasks.find((t) => t.id === id);
+    if (!currentTask) return;
+
+    const merged = { ...currentTask, ...updates, updatedAt: new Date().toISOString() };
+    setTasks((prev) => prev.map((t) => (t.id === id ? merged : t)));
+
+    try {
+      const updated = await taskService.updateTask(id, merged);
+      setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
+      return updated;
+    } catch (err) {
+      console.error('Gagal memperbarui tugas:', err);
+      setTasks((prev) => prev.map((t) => (t.id === id ? currentTask : t)));
+      throw err;
+    }
+  }, [tasks]);
+
+  const deleteTask = useCallback(async (id) => {
+    const currentTask = tasks.find((t) => t.id === id);
     setTasks((prev) => prev.filter((task) => task.id !== id));
-  }, [setTasks]);
 
-  const deleteTaskWithUndo = useCallback((id, addToast) => {
+    try {
+      await taskService.deleteTask(id);
+    } catch (err) {
+      console.error('Gagal menghapus tugas:', err);
+      if (currentTask) setTasks((prev) => [currentTask, ...prev]);
+      throw err;
+    }
+  }, [tasks]);
+
+  const deleteTaskWithUndo = useCallback(async (id, addToast) => {
     const task = tasks.find((t) => t.id === id);
     if (!task) return;
 
     deletedRef.current = task;
     setTasks((prev) => prev.filter((t) => t.id !== id));
 
+    let timerId = null;
+
+    const commitDelete = async () => {
+      if (deletedRef.current && deletedRef.current.id === id) {
+        try {
+          await taskService.deleteTask(id);
+        } catch (err) {
+          console.error('Gagal menghapus tugas dari server:', err);
+        } finally {
+          deletedRef.current = null;
+        }
+      }
+    };
+
+    timerId = setTimeout(commitDelete, 5000);
+
     if (addToast) {
       addToast('Tugas dihapus. Ketuk "Urungkan" untuk membatalkan.', 'warning', {
         label: 'Urungkan',
         onClick: () => {
+          if (timerId) clearTimeout(timerId);
           if (deletedRef.current) {
             setTasks((prev) => [deletedRef.current, ...prev]);
             deletedRef.current = null;
-            addToast('Tugas dikembalikan!', 'success');
+            if (addToast) addToast('Tugas dikembalikan!', 'success');
           }
         },
       });
     }
-  }, [tasks, setTasks]);
+  }, [tasks]);
 
-  const toggleTask = useCallback((id) => {
-    let completedTask = null;
-    setTasks((prev) => {
-      const updated = prev.map((task) => {
-        if (task.id !== id) return task;
-        const wasCompleted = task.completed;
-        const nowCompleted = !wasCompleted;
-        completedTask = task;
-        return {
-          ...task,
-          completed: nowCompleted,
-          completedAt: nowCompleted ? new Date().toISOString() : null,
-          updatedAt: new Date().toISOString(),
-        };
-      });
-      if (completedTask && !completedTask.completed && completedTask.recurrence) {
-        const deadlineDate = new Date(completedTask.deadline);
+  const toggleTask = useCallback(async (id) => {
+    const currentTask = tasks.find((t) => t.id === id);
+    if (!currentTask) return;
+
+    const nowCompleted = !currentTask.completed;
+    const updatedPayload = {
+      ...currentTask,
+      completed: nowCompleted,
+      completedAt: nowCompleted ? new Date().toISOString() : null,
+      updatedAt: new Date().toISOString(),
+    };
+
+    setTasks((prev) => prev.map((t) => (t.id === id ? updatedPayload : t)));
+
+    try {
+      const updated = await taskService.updateTask(id, updatedPayload);
+      setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
+
+      if (!currentTask.completed && currentTask.recurrence) {
+        const deadlineDate = new Date(currentTask.deadline);
         let newDeadline;
-        switch (completedTask.recurrence) {
+        switch (currentTask.recurrence) {
           case 'daily':
             newDeadline = new Date(deadlineDate.getTime() + 1 * 24 * 60 * 60 * 1000);
             break;
@@ -119,47 +179,90 @@ export function useTasks() {
           default:
             newDeadline = new Date(deadlineDate.getTime() + 1 * 24 * 60 * 60 * 1000);
         }
-        const newTask = {
-          ...completedTask,
-          id: generateId(),
+
+        const recurringTask = {
+          title: currentTask.title,
+          description: currentTask.description || '',
           deadline: newDeadline.toISOString(),
+          priority: currentTask.priority || 'medium',
+          category: currentTask.category || 'lainnya',
           completed: false,
-          completedAt: null,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
+          completedAt: null,
+          subtasks: currentTask.subtasks || [],
+          recurrence: currentTask.recurrence,
+          notes: currentTask.notes || '',
         };
-        return [newTask, ...updated];
+
+        const createdRecurring = await taskService.createTask(recurringTask);
+        setTasks((prev) => [createdRecurring, ...prev]);
       }
-      return updated;
-    });
-  }, [setTasks]);
+    } catch (err) {
+      console.error('Gagal toggle tugas:', err);
+      setTasks((prev) => prev.map((t) => (t.id === id ? currentTask : t)));
+    }
+  }, [tasks]);
 
-  const batchComplete = useCallback(() => {
+  const batchComplete = useCallback(async () => {
+    if (selectedIds.length === 0) return;
+    const currentTasks = [...tasks];
     setTasks((prev) =>
-      prev.map((task) =>
-        selectedIds.includes(task.id) && !task.completed
-          ? { ...task, completed: true, completedAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
-          : task
+      prev.map((t) =>
+        selectedIds.includes(t.id) && !t.completed
+          ? { ...t, completed: true, completedAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
+          : t
       )
     );
-    setSelectedIds([]);
-  }, [selectedIds, setTasks]);
 
-  const batchDelete = useCallback(() => {
-    setTasks((prev) => prev.filter((task) => !selectedIds.includes(task.id)));
-    setSelectedIds([]);
-  }, [selectedIds, setTasks]);
+    try {
+      await taskService.batchUpdateTasks(selectedIds, {
+        completed: true,
+        completedAt: new Date().toISOString(),
+      });
+      setSelectedIds([]);
+    } catch (err) {
+      console.error('Gagal batch complete:', err);
+      setTasks(currentTasks);
+    }
+  }, [selectedIds, tasks]);
 
-  const batchUncomplete = useCallback(() => {
+  const batchUncomplete = useCallback(async () => {
+    if (selectedIds.length === 0) return;
+    const currentTasks = [...tasks];
     setTasks((prev) =>
-      prev.map((task) =>
-        selectedIds.includes(task.id) && task.completed
-          ? { ...task, completed: false, completedAt: null, updatedAt: new Date().toISOString() }
-          : task
+      prev.map((t) =>
+        selectedIds.includes(t.id) && t.completed
+          ? { ...t, completed: false, completedAt: null, updatedAt: new Date().toISOString() }
+          : t
       )
     );
-    setSelectedIds([]);
-  }, [selectedIds, setTasks]);
+
+    try {
+      await taskService.batchUpdateTasks(selectedIds, {
+        completed: false,
+        completedAt: null,
+      });
+      setSelectedIds([]);
+    } catch (err) {
+      console.error('Gagal batch uncomplete:', err);
+      setTasks(currentTasks);
+    }
+  }, [selectedIds, tasks]);
+
+  const batchDelete = useCallback(async () => {
+    if (selectedIds.length === 0) return;
+    const currentTasks = [...tasks];
+    setTasks((prev) => prev.filter((t) => !selectedIds.includes(t.id)));
+
+    try {
+      await taskService.batchDeleteTasks(selectedIds);
+      setSelectedIds([]);
+    } catch (err) {
+      console.error('Gagal batch delete:', err);
+      setTasks(currentTasks);
+    }
+  }, [selectedIds, tasks]);
 
   const toggleSelectAll = useCallback(() => {
     setSelectedIds((prev) => {
@@ -178,6 +281,9 @@ export function useTasks() {
 
   return {
     tasks,
+    loading,
+    error,
+    refetchTasks: fetchTasks,
     filteredTasks,
     filters,
     setFilters,

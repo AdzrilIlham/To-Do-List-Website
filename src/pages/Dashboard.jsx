@@ -11,16 +11,10 @@ import Modal from '../components/ui/Modal';
 import { SkeletonStats } from '../components/ui/Skeleton';
 
 export default function Dashboard() {
-  const { filteredTasks, stats, addTask, updateTask, addToast, selectedIds, toggleSelectOne, toggleSelectAll } = useTaskContext();
+  const { filteredTasks, stats, addTask, updateTask, addToast, selectedIds, toggleSelectOne, toggleSelectAll, loading } = useTaskContext();
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
-  const [loading, setLoading] = useState(true);
   const notifiedRef = useRef(new Set());
-
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 500);
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
@@ -39,16 +33,24 @@ export default function Dashboard() {
     });
   }, [filteredTasks]);
 
-  const handleAddTask = (taskData) => {
-    addTask(taskData);
-    addToast('Tugas berhasil ditambahkan!', 'success');
-    setShowAddModal(false);
+  const handleAddTask = async (taskData) => {
+    try {
+      await addTask(taskData);
+      addToast('Tugas berhasil ditambahkan!', 'success');
+      setShowAddModal(false);
+    } catch {
+      addToast('Gagal menambahkan tugas ke Supabase', 'error');
+    }
   };
 
-  const handleEditTask = (taskData) => {
-    updateTask(editingTask.id, taskData);
-    addToast('Tugas berhasil diperbarui!', 'success');
-    setEditingTask(null);
+  const handleEditTask = async (taskData) => {
+    try {
+      await updateTask(editingTask.id, taskData);
+      addToast('Tugas berhasil diperbarui!', 'success');
+      setEditingTask(null);
+    } catch {
+      addToast('Gagal memperbarui tugas di Supabase', 'error');
+    }
   };
 
   return (

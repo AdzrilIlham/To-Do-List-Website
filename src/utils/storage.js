@@ -1,43 +1,8 @@
-import { indexedDBStorage } from './db.js';
+import { taskService } from '../services/taskService';
 
 const STORAGE_KEYS = {
-  TASKS: 'todo_tasks',
   THEME: 'todo_theme',
 };
-
-let useIndexedDB = false;
-
-async function probeIndexedDB() {
-  try {
-    await indexedDBStorage.set('__probe__', true);
-    await indexedDBStorage.remove('__probe__');
-    useIndexedDB = true;
-    syncAllFromIndexedDB();
-  } catch {
-    useIndexedDB = false;
-  }
-}
-
-async function syncAllFromIndexedDB() {
-  if (!useIndexedDB) return;
-  for (const key of Object.values(STORAGE_KEYS)) {
-    try {
-      const value = await indexedDBStorage.get(key);
-      if (value !== null) {
-        localStorage.setItem(key, JSON.stringify(value));
-      }
-    } catch {}
-  }
-}
-
-async function syncToIndexedDB(key, value) {
-  if (!useIndexedDB) return;
-  try {
-    await indexedDBStorage.set(key, value);
-  } catch {}
-}
-
-probeIndexedDB();
 
 export const storage = {
   get(key) {
@@ -53,13 +18,8 @@ export const storage = {
   set(key, value) {
     try {
       localStorage.setItem(key, JSON.stringify(value));
-      syncToIndexedDB(key, value);
       return true;
     } catch (error) {
-      if (error.name === 'QuotaExceededError' || error.code === 22) {
-        console.error('Storage quota exceeded');
-        return { error: 'quota_exceeded' };
-      }
       console.error(`Error setting localStorage key "${key}":`, error);
       return false;
     }
@@ -68,9 +28,6 @@ export const storage = {
   remove(key) {
     try {
       localStorage.removeItem(key);
-      if (useIndexedDB) {
-        indexedDBStorage.remove(key).catch(() => {});
-      }
       return true;
     } catch (error) {
       console.error(`Error removing localStorage key "${key}":`, error);
@@ -83,9 +40,6 @@ export const storage = {
       Object.values(STORAGE_KEYS).forEach((key) => {
         localStorage.removeItem(key);
       });
-      if (useIndexedDB) {
-        indexedDBStorage.clear().catch(() => {});
-      }
       return true;
     } catch (error) {
       console.error('Error clearing localStorage:', error);
@@ -95,17 +49,15 @@ export const storage = {
 
   async exportData() {
     try {
-      const data = {};
-      const keys = Object.values(STORAGE_KEYS);
-      if (useIndexedDB) {
-        const result = await indexedDBStorage.exportData(keys);
-        if (result.success) return result;
-      }
-      keys.forEach((key) => {
-        const item = localStorage.getItem(key);
-        if (item) data[key] = JSON.parse(item);
-      });
-      return { success: true, data };
+      const tasks = await taskService.fetchTasks();
+      const theme = this.get(STORAGE_KEYS.THEME) || 'light';
+      return {
+        success: true,
+        data: {
+          todo_tasks: tasks,
+          todo_theme: theme,
+        },
+      };
     } catch (error) {
       console.error('Error exporting data:', error);
       return { success: false, error: error.message };
@@ -118,19 +70,20 @@ export const storage = {
       if (!data || typeof data !== 'object') {
         return { success: false, error: 'Format data tidak valid' };
       }
-      const filtered = {};
-      Object.entries(data).forEach(([key, value]) => {
-        if (STORAGE_KEYS[key]) {
-          filtered[key] = value;
-          localStorage.setItem(key, JSON.stringify(value));
+
+      if (Array.isArray(data.todo_tasks)) {
+        for (const task of data.todo_tasks) {
+          await taskService.createTask(task);
         }
-      });
-      if (useIndexedDB) {
-        return await indexedDBStorage.importData(JSON.stringify(filtered));
       }
+
+      if (data.todo_theme) {
+        this.set(STORAGE_KEYS.THEME, data.todo_theme);
+      }
+
       return { success: true };
-    } catch {
-      return { success: false, error: 'File tidak valid atau rusak' };
+    } catch (error) {
+      return { success: false, error: error.message || 'File tidak valid atau rusak' };
     }
   },
 };
