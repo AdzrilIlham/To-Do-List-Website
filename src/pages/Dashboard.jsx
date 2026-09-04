@@ -22,12 +22,22 @@ export default function Dashboard() {
     const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
     filteredTasks.forEach((task) => {
       if (task.completed || notifiedRef.current.has(task.id)) return;
+      if (!task.deadline) return;
       const deadline = new Date(task.deadline);
       if (deadline > now && deadline < in24h) {
-        new Notification('ToDoo - Deadline Mendekat!', {
+        const notifOptions = {
           body: `"${task.title}" deadline dalam kurang dari 24 jam!`,
           icon: '/favicon-32x32.png',
-        });
+        };
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.ready.then((reg) => {
+            reg.showNotification('ToDoo - Deadline Mendekat!', notifOptions).catch(() => {});
+          }).catch(() => {});
+        } else {
+          try {
+            new Notification('ToDoo - Deadline Mendekat!', notifOptions);
+          } catch {}
+        }
         notifiedRef.current.add(task.id);
       }
     });
