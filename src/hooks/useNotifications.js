@@ -68,8 +68,14 @@ let audioCtx = null;
 
 function getAudioCtx() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
   return audioCtx;
+}
+
+export function unlockAudio() {
+  try {
+    const ctx = getAudioCtx();
+    if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+  } catch {}
 }
 
 export function playSound(soundType) {
@@ -77,7 +83,13 @@ export function playSound(soundType) {
   try {
     const ctx = getAudioCtx();
     const play = SOUND_PRESETS[soundType];
-    if (play) play(ctx);
+    if (!play) return;
+    const run = () => play(ctx);
+    if (ctx.state === 'suspended') {
+      ctx.resume().then(run).catch(() => {});
+    } else {
+      run();
+    }
   } catch {}
 }
 
@@ -120,9 +132,9 @@ export default function useNotifications() {
           icon: '/favicon-32x32.png',
         };
 
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        if ('serviceWorker' in navigator) {
           navigator.serviceWorker.ready.then((reg) => {
-            reg.showNotification('ToDoo - Deadline Mendekat!', notifOptions);
+            reg.showNotification('ToDoo - Deadline Mendekat!', notifOptions).catch(() => {});
           }).catch(() => {});
         } else if ('Notification' in window && Notification.permission === 'granted') {
           try {

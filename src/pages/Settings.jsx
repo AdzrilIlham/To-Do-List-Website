@@ -18,6 +18,14 @@ const SOUND_OPTIONS = [
   { value: 'none', label: 'Tanpa Suara' },
 ];
 
+function getPlatform() {
+  const ua = navigator.userAgent || '';
+  const isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isAndroid = /Android/i.test(ua);
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  return { isIOS, isAndroid, isStandalone };
+}
+
 export default function Settings() {
   const { theme, toggleTheme, tasks, addToast, notifSettings, updateNotifSettings } = useTaskContext();
   const { signOut } = useAuth();
@@ -27,6 +35,7 @@ export default function Settings() {
     () => (typeof Notification !== 'undefined' ? Notification.permission : 'denied')
   );
   const { isSubscribed, loading: pushLoading, subscribe, unsubscribe } = usePushSubscription();
+  const [platform] = useState(() => getPlatform());
 
   useEffect(() => {
     if (typeof Notification !== 'undefined') {
@@ -59,7 +68,8 @@ export default function Settings() {
       addToast(ok ? 'Notifikasi push dinonaktifkan' : 'Gagal menonaktifkan push', ok ? 'info' : 'error');
     } else {
       if (notifPermission !== 'granted') {
-        const result = await Notification.requestPermission().catch(() => 'denied');
+        const permPromise = Notification.requestPermission();
+        const result = await permPromise.catch(() => 'denied');
         setNotifPermission(result);
         if (result !== 'granted') {
           addToast('Izin notifikasi diperlukan untuk push', 'error');
@@ -180,7 +190,11 @@ export default function Settings() {
                   <FiBell size={14} className="text-yellow-600 dark:text-yellow-400" />
                   <span className="text-xs text-yellow-700 dark:text-yellow-300">
                     {notifPermission === 'denied'
-                      ? 'Izin notifikasi ditolak. Aktifkan di pengaturan browser.'
+                      ? platform.isIOS
+                        ? 'Izin ditolak. Buka iPhone → Pengaturan → Safari → Notifikasi → ToDoo → Aktifkan.'
+                        : platform.isAndroid
+                          ? 'Izin ditolak. Buka Pengaturan → Aplikasi → Chrome → Notifikasi → ToDoo → Aktifkan.'
+                          : 'Izin notifikasi ditolak. Aktifkan di pengaturan browser.'
                       : 'Aktifkan izin notifikasi agar pengingat berfungsi.'}
                   </span>
                 </div>
@@ -188,6 +202,40 @@ export default function Settings() {
                   <Button variant="secondary" size="sm" onClick={handleRequestNotifPermission}>
                     Aktifkan
                   </Button>
+                )}
+              </div>
+            )}
+
+            {!platform.isStandalone && (platform.isIOS || platform.isAndroid) && (
+              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800/30">
+                <div className="flex items-center gap-2 mb-2">
+                  <FiSmartphone size={14} className="text-blue-600 dark:text-blue-400" />
+                  <span className="text-xs font-semibold text-blue-700 dark:text-blue-300">
+                    {platform.isIOS ? 'Tambahkan ke Layar Utama' : 'Install Aplikasi'}
+                  </span>
+                </div>
+                <p className="text-[11px] text-blue-600 dark:text-blue-400 mb-2">
+                  {platform.isIOS
+                    ? 'Push notification hanya aktif jika ToDoo di-install dari Layar Utama. Buka di Safari, ketuk tombol Share, pilih "Add to Home Screen".'
+                    : 'Push notification hanya aktif jika ToDoo di-install. Buka di Chrome, ketuk menu ⋮ → "Install app" / "Tambahkan ke Layar Utama".'}
+                </p>
+                {platform.isIOS && (
+                  <ol className="text-[10px] text-blue-600/80 dark:text-blue-400/70 space-y-0.5 list-decimal list-inside">
+                    <li>Buka Todoo di Safari</li>
+                    <li>Ketuk tombol Share (kotak dengan panah ↑)</li>
+                    <li>Pilih &quot;Add to Home Screen&quot;</li>
+                    <li>Ketuk &quot;Add&quot;</li>
+                    <li>Buka ToDoo dari Layar Utama</li>
+                  </ol>
+                )}
+                {platform.isAndroid && (
+                  <ol className="text-[10px] text-blue-600/80 dark:text-blue-400/70 space-y-0.5 list-decimal list-inside">
+                    <li>Buka Todoo di Chrome</li>
+                    <li>Ketuk menu ⋮ (titik tiga)</li>
+                    <li>Pilih &quot;Install app&quot; atau &quot;Tambahkan ke Layar Utama&quot;</li>
+                    <li>Ketuk &quot;Install&quot;</li>
+                    <li>Buka ToDoo dari Layar Utama</li>
+                  </ol>
                 )}
               </div>
             )}
@@ -214,14 +262,18 @@ export default function Settings() {
                 <FiSmartphone size={14} className="text-gray-400 dark:text-gray-500" />
                 <div>
                   <span className="text-sm text-gray-600 dark:text-gray-400 block">Push (App Tertutup)</span>
-                  <span className="text-[10px] text-gray-400 dark:text-gray-500">Reminder tetap jalan walau app ditutup</span>
+                  <span className="text-[10px] text-gray-400 dark:text-gray-500">
+                    {!platform.isStandalone && (platform.isIOS || platform.isAndroid)
+                      ? 'Perlu install dari Layar Utama'
+                      : 'Reminder tetap jalan walau app ditutup'}
+                  </span>
                 </div>
               </div>
               <button
                 onClick={handleTogglePush}
-                disabled={pushLoading}
+                disabled={pushLoading || (!platform.isStandalone && (platform.isIOS || platform.isAndroid))}
                 aria-label={isSubscribed ? 'Nonaktifkan push' : 'Aktifkan push'}
-                className={`relative w-12 h-6 rounded-full transition-colors duration-300 cursor-pointer disabled:opacity-50 ${
+                className={`relative w-12 h-6 rounded-full transition-colors duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                   isSubscribed ? 'bg-primary' : 'bg-gray-300'
                 }`}
               >

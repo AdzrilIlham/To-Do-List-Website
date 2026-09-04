@@ -11,7 +11,7 @@ import NotFound from './pages/NotFound';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Onboarding from './components/ui/Onboarding';
-import useNotifications from './hooks/useNotifications';
+import useNotifications, { unlockAudio } from './hooks/useNotifications';
 
 const TodayView = lazy(() => import('./pages/TodayView'));
 const Calendar = lazy(() => import('./pages/Calendar'));
@@ -53,6 +53,20 @@ function AppContent() {
   const { theme } = useTaskContext();
 
   useNotifications();
+
+  useEffect(() => {
+    const unlock = () => {
+      unlockAudio();
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('touchstart', unlock);
+    };
+    window.addEventListener('pointerdown', unlock);
+    window.addEventListener('touchstart', unlock);
+    return () => {
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('touchstart', unlock);
+    };
+  }, []);
 
   useEffect(() => {
     if (theme === 'dark') {

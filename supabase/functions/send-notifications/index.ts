@@ -7,17 +7,6 @@ const VAPID_EMAIL = Deno.env.get("VAPID_EMAIL") || "mailto:admin@todoo.app";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const APP_SERVICE_ROLE_KEY = Deno.env.get("APP_SERVICE_ROLE_KEY") || "";
 
-function urlBase64ToUint8Array(base64String: string): Uint8Array {
-  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-  const rawData = atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-  for (let i = 0; i < rawData.length; i++) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
-  return outputArray;
-}
-
 async function sendPushNotification(subscription: Record<string, unknown>, title: string, body: string): Promise<boolean> {
   const { endpoint, keys } = subscription as { endpoint: string; keys: { p256dh: string; auth: string } };
 
