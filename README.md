@@ -1,6 +1,6 @@
 <div align="center">
 
-<h1>TaskFlow</h1>
+<h1>ToDoo</h1>
 
 <p>
 Modern Task Management Application built with React.js, Vite, and Tailwind CSS
