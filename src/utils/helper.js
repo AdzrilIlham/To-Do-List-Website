@@ -80,6 +80,7 @@ export const isThisWeek = (dateString) => {
 };
 
 export const isPastDue = (dateString) => {
+  if (!dateString) return false;
   const now = new Date();
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return false;
@@ -87,11 +88,15 @@ export const isPastDue = (dateString) => {
 };
 
 export const wasCompletedLate = (task) => {
-  return task.completed && task.completedAt && task.deadline &&
-    new Date(task.completedAt) > new Date(task.deadline);
+  if (!task.completed || !task.completedAt || !task.deadline) return false;
+  const completedAt = new Date(task.completedAt);
+  const deadline = new Date(task.deadline);
+  if (isNaN(completedAt.getTime()) || isNaN(deadline.getTime())) return false;
+  return completedAt > deadline;
 };
 
 export const isDueSoon = (dateString, hours = 24) => {
+  if (!dateString) return false;
   const now = new Date();
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return false;

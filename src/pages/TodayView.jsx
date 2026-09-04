@@ -24,16 +24,24 @@ export default function TodayView() {
     return tasks.filter((t) => !t.completed && isDueSoon(t.deadline) && !isToday(t.deadline) && !isPastDue(t.deadline));
   }, [tasks]);
 
-  const handleAddTask = (taskData) => {
-    addTask(taskData);
-    addToast('Tugas berhasil ditambahkan!', 'success');
-    setShowAddModal(false);
+  const handleAddTask = async (taskData) => {
+    try {
+      await addTask(taskData);
+      addToast('Tugas berhasil ditambahkan!', 'success');
+      setShowAddModal(false);
+    } catch {
+      addToast('Gagal menambahkan tugas ke Supabase', 'error');
+    }
   };
 
-  const handleEditTask = (taskData) => {
-    updateTask(editingTask.id, taskData);
-    addToast('Tugas berhasil diperbarui!', 'success');
-    setEditingTask(null);
+  const handleEditTask = async (taskData) => {
+    try {
+      await updateTask(editingTask.id, taskData);
+      addToast('Tugas berhasil diperbarui!', 'success');
+      setEditingTask(null);
+    } catch {
+      addToast('Gagal memperbarui tugas di Supabase', 'error');
+    }
   };
 
   const todayCompleted = todayTasks.filter((t) => t.completed).length;

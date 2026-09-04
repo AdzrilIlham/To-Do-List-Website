@@ -28,7 +28,7 @@ export function useTasks() {
     setError(null);
     try {
       const data = await taskService.fetchTasks();
-      setTasks(data);
+      setTasks(data.filter((t) => t && typeof t.id === 'string' && typeof t.title === 'string'));
     } catch (err) {
       console.error('Gagal mengambil tugas dari Supabase:', err);
       setError(err.message || 'Gagal memuat tugas');

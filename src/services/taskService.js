@@ -1,21 +1,32 @@
 import { supabase } from '../lib/supabase';
 
-export const mapTaskFromSupabase = (row) => ({
-  id: row.id,
-  userId: row.user_id,
-  title: row.title,
-  description: row.description || '',
-  deadline: row.deadline,
-  priority: row.priority || 'medium',
-  category: row.category || 'lainnya',
-  completed: Boolean(row.completed),
-  createdAt: row.created_at,
-  updatedAt: row.updated_at,
-  completedAt: row.completed_at || null,
-  subtasks: row.subtasks || [],
-  recurrence: row.recurrence || null,
-  notes: row.notes || '',
-});
+export const mapTaskFromSupabase = (row) => {
+  const rawSubtasks = row.subtasks;
+  const subtasks = Array.isArray(rawSubtasks)
+    ? rawSubtasks.map((s) => ({
+        id: s?.id ?? '',
+        text: typeof s?.text === 'string' ? s.text : '',
+        completed: Boolean(s?.completed),
+      }))
+    : [];
+
+  return {
+    id: row.id,
+    userId: row.user_id,
+    title: typeof row.title === 'string' ? row.title : '',
+    description: row.description ?? '',
+    deadline: row.deadline ?? null,
+    priority: row.priority || 'medium',
+    category: row.category || 'lainnya',
+    completed: Boolean(row.completed),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    completedAt: row.completed_at || null,
+    subtasks,
+    recurrence: row.recurrence || null,
+    notes: row.notes ?? '',
+  };
+};
 
 export const mapTaskToSupabase = (task) => {
   const payload = {
