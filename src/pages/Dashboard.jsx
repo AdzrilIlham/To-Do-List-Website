@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiPlus, FiCheckCircle, FiClock, FiAlertCircle, FiTrendingUp, FiCalendar, FiTarget } from 'react-icons/fi';
 import { useTaskContext } from '../context/TaskContext';
@@ -14,34 +14,6 @@ export default function Dashboard() {
   const { filteredTasks, stats, addTask, updateTask, addToast, selectedIds, toggleSelectOne, toggleSelectAll, loading } = useTaskContext();
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
-  const notifiedRef = useRef(new Set());
-
-  useEffect(() => {
-    if (!('Notification' in window) || Notification.permission !== 'granted') return;
-    const now = new Date();
-    const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-    filteredTasks.forEach((task) => {
-      if (task.completed || notifiedRef.current.has(task.id)) return;
-      if (!task.deadline) return;
-      const deadline = new Date(task.deadline);
-      if (deadline > now && deadline < in24h) {
-        const notifOptions = {
-          body: `"${task.title}" deadline dalam kurang dari 24 jam!`,
-          icon: '/favicon-32x32.png',
-        };
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.ready.then((reg) => {
-            reg.showNotification('ToDoo - Deadline Mendekat!', notifOptions).catch(() => {});
-          }).catch(() => {});
-        } else {
-          try {
-            new Notification('ToDoo - Deadline Mendekat!', notifOptions);
-          } catch {}
-        }
-        notifiedRef.current.add(task.id);
-      }
-    });
-  }, [filteredTasks]);
 
   const handleAddTask = async (taskData) => {
     try {

@@ -1,5 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useTaskContext } from '../context/TaskContext';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
 
 const STORAGE_KEY = 'todoo_notif_settings';
 
@@ -98,7 +100,7 @@ export function getSettings() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) return JSON.parse(saved);
   } catch {}
-  return { enabled: true, reminderHours: 24, sound: true, soundType: 'beep' };
+  return { enabled: true, sound: true, soundType: 'beep' };
 }
 
 export function saveSettings(settings) {
@@ -107,30 +109,35 @@ export function saveSettings(settings) {
 
 export default function useNotifications() {
   const { tasks, notifSettings } = useTaskContext();
+  const { user } = useAuth();
   const notifiedRef = useRef(new Set());
 
-  const checkDeadlines = useCallback(() => {
+  const checkDeadlines = useCallback(async () => {
     if (!notifSettings.enabled) return;
+    if (!user?.id) return;
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
 
     const now = new Date();
-    tasks.forEach((task) => {
-      if (task.completed || notifiedRef.current.has(task.id)) return;
-      if (!task.deadline) return;
+    for (const task of tasks) {
+      if (task.completed || notifiedRef.current.has(task.id)) continue;
+      if (!task.deadline) continue;
 
       const deadline = new Date(task.deadline);
       const diffMs = deadline.getTime() - now.getTime();
       const diffHours = diffMs / (1000 * 60 * 60);
 
-      if (diffHours > 0 && diffHours <= notifSettings.reminderHours) {
+      if (diffHours > 0 && diffHours <= 24) {
+        const { error: logError } = await supabase
+          .from('notifications_log')
+          .insert({ task_id: task.id, user_id: user.id });
+
+        if (logError) continue;
+
         const body = diffHours <= 1
           ? `"${task.title}" deadline dalam kurang dari 1 jam!`
           : `"${task.title}" deadline dalam ${Math.ceil(diffHours)} jam lagi!`;
 
-        const notifOptions = {
-          body,
-          icon: '/favicon-32x32.png',
-        };
+        const notifOptions = { body, icon: '/favicon-32x32.png' };
 
         if ('serviceWorker' in navigator) {
           navigator.serviceWorker.ready.then((reg) => {
@@ -148,8 +155,8 @@ export default function useNotifications() {
 
         notifiedRef.current.add(task.id);
       }
-    });
-  }, [tasks, notifSettings]);
+    }
+  }, [tasks, notifSettings, user?.id]);
 
   useEffect(() => {
     if (!('Notification' in window)) return;
@@ -159,8 +166,4 @@ export default function useNotifications() {
 
     return () => clearInterval(interval);
   }, [checkDeadlines]);
-
-  useEffect(() => {
-    notifiedRef.current.clear();
-  }, [tasks]);
 }

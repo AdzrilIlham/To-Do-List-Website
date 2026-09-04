@@ -7,7 +7,7 @@ const TaskContext = createContext(null);
 
 const MAX_TOASTS = 5;
 
-const NOTIF_DEFAULTS = { enabled: true, reminderHours: 24, sound: true, soundType: 'beep' };
+const NOTIF_DEFAULTS = { enabled: true, sound: true, soundType: 'beep' };
 
 export function TaskProvider({ children }) {
   const taskData = useTasks();

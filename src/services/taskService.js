@@ -75,6 +75,20 @@ export const taskService = {
   },
 
   async updateTask(id, updates) {
+    const { data: currentTask } = await supabase
+      .from('tasks')
+      .select('deadline, user_id')
+      .eq('id', id)
+      .single();
+
+    if (currentTask && updates.deadline && currentTask.deadline !== updates.deadline) {
+      await supabase
+        .from('notifications_log')
+        .delete()
+        .eq('task_id', id)
+        .eq('user_id', currentTask.user_id);
+    }
+
     const currentPayload = mapTaskToSupabase(updates);
     delete currentPayload.id;
 

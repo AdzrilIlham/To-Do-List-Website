@@ -285,21 +285,6 @@ export default function Settings() {
               </button>
             </div>
 
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Jendela Pengingat</span>
-              <select
-                value={notifSettings.reminderHours}
-                onChange={(e) => updateNotifSettings({ reminderHours: Number(e.target.value) })}
-                className="px-3 py-1.5 bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer"
-              >
-                <option value={1}>1 jam sebelum</option>
-                <option value={6}>6 jam sebelum</option>
-                <option value={12}>12 jam sebelum</option>
-                <option value={24}>24 jam sebelum</option>
-                <option value={48}>48 jam sebelum</option>
-              </select>
-            </div>
-
             <div>
               <span className="text-sm text-gray-600 dark:text-gray-400 block mb-2">Suara Notifikasi</span>
               <div className="space-y-2">
