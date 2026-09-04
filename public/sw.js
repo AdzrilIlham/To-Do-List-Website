@@ -57,3 +57,49 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
+
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+
+  let data;
+  try {
+    data = event.data.json();
+  } catch {
+    data = { title: 'ToDoo', body: event.data.text() };
+  }
+
+  const options = {
+    body: data.body || '',
+    icon: data.icon || '/favicon-32x32.png',
+    badge: data.badge || '/favicon-16x16.png',
+    vibrate: [200, 100, 200],
+    tag: 'todoo-deadline',
+    renotify: true,
+    data: { url: '/' },
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title || 'ToDoo', options)
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  const urlToOpen = event.notification.data?.url || '/';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      for (const client of windowClients) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          client.navigate(urlToOpen);
+          client.focus();
+          return;
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
+  );
+});

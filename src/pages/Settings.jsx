@@ -1,11 +1,12 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiSun, FiMoon, FiTrash2, FiInfo, FiDatabase, FiDownload, FiUpload, FiBell, FiArchive, FiLogOut, FiPlay } from 'react-icons/fi';
+import { FiSun, FiMoon, FiTrash2, FiInfo, FiDatabase, FiDownload, FiUpload, FiBell, FiArchive, FiLogOut, FiPlay, FiVolume2, FiSmartphone } from 'react-icons/fi';
 import { useTaskContext } from '../context/TaskContext';
 import { useAuth } from '../context/AuthContext';
 import { storage } from '../utils/storage';
 import { playSound } from '../hooks/useNotifications';
+import usePushSubscription from '../hooks/usePushSubscription';
 import Button from '../components/ui/Button';
 import ConfirmDeleteModal from '../components/ui/ConfirmDeleteModal';
 
@@ -22,6 +23,53 @@ export default function Settings() {
   const { signOut } = useAuth();
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const fileInputRef = useRef(null);
+  const [notifPermission, setNotifPermission] = useState(
+    () => (typeof Notification !== 'undefined' ? Notification.permission : 'denied')
+  );
+  const { isSubscribed, loading: pushLoading, subscribe, unsubscribe } = usePushSubscription();
+
+  useEffect(() => {
+    if (typeof Notification !== 'undefined') {
+      setNotifPermission(Notification.permission);
+    }
+  }, []);
+
+  const handleRequestNotifPermission = async () => {
+    if (typeof Notification === 'undefined') {
+      addToast('Browser tidak mendukung notifikasi', 'error');
+      return;
+    }
+    try {
+      const result = await Notification.requestPermission();
+      setNotifPermission(result);
+      if (result === 'granted') {
+        addToast('Notifikasi berhasil diaktifkan!', 'success');
+      } else {
+        addToast('Izin notifikasi ditolak', 'error');
+      }
+    } catch {
+      addToast('Gagal meminta izin notifikasi', 'error');
+    }
+  };
+
+  const handleTogglePush = async () => {
+    if (pushLoading) return;
+    if (isSubscribed) {
+      const ok = await unsubscribe();
+      addToast(ok ? 'Notifikasi push dinonaktifkan' : 'Gagal menonaktifkan push', ok ? 'info' : 'error');
+    } else {
+      if (notifPermission !== 'granted') {
+        const result = await Notification.requestPermission().catch(() => 'denied');
+        setNotifPermission(result);
+        if (result !== 'granted') {
+          addToast('Izin notifikasi diperlukan untuk push', 'error');
+          return;
+        }
+      }
+      const ok = await subscribe();
+      addToast(ok ? 'Notifikasi push aktif! Reminder akan muncul walau app tertutup.' : 'Gagal mengaktifkan push', ok ? 'success' : 'error');
+    }
+  };
 
   const handleClearData = () => {
     storage.clear();
@@ -126,6 +174,24 @@ export default function Settings() {
             </div>
           </div>
           <div className="space-y-4">
+            {notifPermission !== 'granted' && (
+              <div className="flex items-center justify-between gap-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl border border-yellow-200 dark:border-yellow-800/30">
+                <div className="flex items-center gap-2">
+                  <FiBell size={14} className="text-yellow-600 dark:text-yellow-400" />
+                  <span className="text-xs text-yellow-700 dark:text-yellow-300">
+                    {notifPermission === 'denied'
+                      ? 'Izin notifikasi ditolak. Aktifkan di pengaturan browser.'
+                      : 'Aktifkan izin notifikasi agar pengingat berfungsi.'}
+                  </span>
+                </div>
+                {notifPermission !== 'denied' && (
+                  <Button variant="secondary" size="sm" onClick={handleRequestNotifPermission}>
+                    Aktifkan
+                  </Button>
+                )}
+              </div>
+            )}
+
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-600 dark:text-gray-400">Aktifkan Pengingat</span>
               <button
@@ -138,6 +204,30 @@ export default function Settings() {
                 <motion.div
                   className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md"
                   animate={{ x: notifSettings.enabled ? 24 : 0 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                />
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <FiSmartphone size={14} className="text-gray-400 dark:text-gray-500" />
+                <div>
+                  <span className="text-sm text-gray-600 dark:text-gray-400 block">Push (App Tertutup)</span>
+                  <span className="text-[10px] text-gray-400 dark:text-gray-500">Reminder tetap jalan walau app ditutup</span>
+                </div>
+              </div>
+              <button
+                onClick={handleTogglePush}
+                disabled={pushLoading}
+                aria-label={isSubscribed ? 'Nonaktifkan push' : 'Aktifkan push'}
+                className={`relative w-12 h-6 rounded-full transition-colors duration-300 cursor-pointer disabled:opacity-50 ${
+                  isSubscribed ? 'bg-primary' : 'bg-gray-300'
+                }`}
+              >
+                <motion.div
+                  className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md"
+                  animate={{ x: isSubscribed ? 24 : 0 }}
                   transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                 />
               </button>
@@ -158,26 +248,40 @@ export default function Settings() {
               </select>
             </div>
 
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Suara Notifikasi</span>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => playSound(notifSettings.soundType)}
-                  aria-label="Coba suara"
-                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-surface transition-colors cursor-pointer"
-                  title="Coba suara"
-                >
-                  <FiPlay size={14} className="text-gray-400" />
-                </button>
-                <select
-                  value={notifSettings.soundType}
-                  onChange={(e) => updateNotifSettings({ soundType: e.target.value, sound: e.target.value !== 'none' })}
-                  className="px-3 py-1.5 bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer"
-                >
-                  {SOUND_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
+            <div>
+              <span className="text-sm text-gray-600 dark:text-gray-400 block mb-2">Suara Notifikasi</span>
+              <div className="space-y-2">
+                {SOUND_OPTIONS.filter((o) => o.value !== 'none').map((opt) => (
+                  <div key={opt.value} className="flex items-center justify-between py-1.5 px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-dark-surface transition-colors">
+                    <div className="flex items-center gap-2">
+                      <FiVolume2 size={14} className="text-gray-400 dark:text-gray-500" />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{opt.label}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => playSound(opt.value)}
+                        aria-label={`Coba suara ${opt.label}`}
+                        className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-border transition-colors cursor-pointer"
+                        title={`Coba ${opt.label}`}
+                      >
+                        <FiPlay size={12} className="text-gray-400 dark:text-gray-500" />
+                      </button>
+                      <button
+                        onClick={() => updateNotifSettings({ soundType: opt.value, sound: true })}
+                        aria-label={`Pilih suara ${opt.label}`}
+                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all cursor-pointer ${
+                          notifSettings.soundType === opt.value
+                            ? 'border-primary bg-primary'
+                            : 'border-gray-300 dark:border-gray-600 hover:border-primary'
+                        }`}
+                      >
+                        {notifSettings.soundType === opt.value && (
+                          <div className="w-2 h-2 rounded-full bg-white" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

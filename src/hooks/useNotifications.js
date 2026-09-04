@@ -64,10 +64,18 @@ const SOUND_PRESETS = {
   },
 };
 
+let audioCtx = null;
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+  return audioCtx;
+}
+
 export function playSound(soundType) {
   if (!soundType || soundType === 'none') return;
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = getAudioCtx();
     const play = SOUND_PRESETS[soundType];
     if (play) play(ctx);
   } catch {}

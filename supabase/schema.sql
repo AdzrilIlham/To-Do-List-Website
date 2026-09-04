@@ -48,3 +48,47 @@ CREATE POLICY "Users can update their own tasks"
 CREATE POLICY "Users can delete their own tasks"
   ON public.tasks FOR DELETE
   USING (auth.uid() = user_id);
+
+-- ============================================================
+-- PUSH NOTIFICATION SUBSCRIPTIONS
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.push_subscriptions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  endpoint TEXT NOT NULL,
+  p256dh TEXT NOT NULL,
+  auth TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(user_id, endpoint)
+);
+
+ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can manage their own subscriptions" ON public.push_subscriptions;
+
+CREATE POLICY "Users can manage their own subscriptions"
+  ON public.push_subscriptions FOR ALL
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+-- ============================================================
+-- NOTIFICATIONS LOG (track sent notifications per task)
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.notifications_log (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  task_id UUID REFERENCES public.tasks(id) ON DELETE CASCADE NOT NULL,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  sent_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(task_id, user_id)
+);
+
+ALTER TABLE public.notifications_log ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view their own notification logs" ON public.notifications_log;
+
+CREATE POLICY "Users can view their own notification logs"
+  ON public.notifications_log FOR ALL
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
