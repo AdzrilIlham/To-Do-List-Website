@@ -80,7 +80,7 @@ export default function GamificationModal({ isOpen, onClose, score, level, nextL
                         {isActive ? 'Aktif' : 'Tercapai'}
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 dark:bg-gray-700 text-gray-400">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 dark:bg-dark-surface text-gray-400">
                         <FiLock size={10} />
                         Terkunci
                       </span>

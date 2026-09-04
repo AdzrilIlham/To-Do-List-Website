@@ -107,10 +107,20 @@ export default function useNotifications() {
           ? `"${task.title}" deadline dalam kurang dari 1 jam!`
           : `"${task.title}" deadline dalam ${Math.ceil(diffHours)} jam lagi!`;
 
-        new Notification('ToDoo - Deadline Mendekat!', {
+        const notifOptions = {
           body,
           icon: '/favicon-32x32.png',
-        });
+        };
+
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.ready.then((reg) => {
+            reg.showNotification('ToDoo - Deadline Mendekat!', notifOptions);
+          }).catch(() => {});
+        } else if ('Notification' in window && Notification.permission === 'granted') {
+          try {
+            new Notification('ToDoo - Deadline Mendekat!', notifOptions);
+          } catch {}
+        }
 
         if (notifSettings.sound) {
           playSound(notifSettings.soundType);

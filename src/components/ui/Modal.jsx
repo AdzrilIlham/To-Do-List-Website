@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiX } from 'react-icons/fi';
 
@@ -72,11 +73,11 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' })
     };
   }, [isOpen, onClose]);
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
           variants={overlayVariants}
           initial="hidden"
           animate="visible"
@@ -86,20 +87,20 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' })
           aria-labelledby="modal-title"
         >
           <motion.div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/70 backdrop-blur-xl"
             onClick={onClose}
           />
           <motion.div
             ref={modalRef}
             tabIndex={-1}
-            className={`relative w-full ${sizeClasses[size]} bg-white dark:bg-dark-card rounded-t-2xl rounded-b-none sm:rounded-2xl shadow-2xl border border-gray-100 dark:border-dark-border overflow-hidden outline-none mt-auto sm:mt-0`}
+            className={`relative w-full ${sizeClasses[size]} max-h-[92dvh] sm:max-h-[85vh] flex flex-col bg-white dark:bg-dark-card rounded-t-2xl sm:rounded-2xl shadow-2xl border border-gray-100 dark:border-dark-border overflow-hidden outline-none mt-auto sm:mt-0`}
             variants={modalVariants}
             initial="hidden"
             animate="visible"
             exit="exit"
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           >
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-dark-border">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-dark-border shrink-0">
               <h2 id="modal-title" className="text-lg font-semibold text-gray-900 dark:text-dark-text">
                 {title}
               </h2>
@@ -111,10 +112,11 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' })
                 <FiX size={20} />
               </button>
             </div>
-            <div className="px-6 py-4 max-h-[70vh] overflow-y-auto">{children}</div>
+            <div className="flex-1 overflow-y-auto px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">{children}</div>
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

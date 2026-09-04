@@ -1,9 +1,10 @@
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiAlertTriangle } from 'react-icons/fi';
 import Button from './Button';
 
 export default function ConfirmDeleteModal({ isOpen, onClose, onConfirm, taskTitle }) {
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <motion.div
@@ -13,7 +14,7 @@ export default function ConfirmDeleteModal({ isOpen, onClose, onConfirm, taskTit
           exit={{ opacity: 0 }}
         >
           <motion.div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/70 backdrop-blur-xl"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -47,6 +48,7 @@ export default function ConfirmDeleteModal({ isOpen, onClose, onConfirm, taskTit
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
