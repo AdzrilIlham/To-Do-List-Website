@@ -76,7 +76,7 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' })
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4"
           variants={overlayVariants}
           initial="hidden"
           animate="visible"
@@ -92,7 +92,7 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' })
           <motion.div
             ref={modalRef}
             tabIndex={-1}
-            className={`relative w-full ${sizeClasses[size]} bg-white dark:bg-dark-card rounded-2xl shadow-2xl border border-gray-100 dark:border-dark-border overflow-hidden outline-none`}
+            className={`relative w-full ${sizeClasses[size]} bg-white dark:bg-dark-card rounded-t-2xl rounded-b-none sm:rounded-2xl shadow-2xl border border-gray-100 dark:border-dark-border overflow-hidden outline-none mt-auto sm:mt-0`}
             variants={modalVariants}
             initial="hidden"
             animate="visible"

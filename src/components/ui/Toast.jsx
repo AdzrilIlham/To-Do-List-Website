@@ -21,7 +21,7 @@ export default function Toast() {
 
   return (
     <div
-      className="fixed bottom-24 right-4 sm:bottom-4 z-[100] flex flex-col gap-2 max-w-sm"
+      className="fixed bottom-28 right-4 sm:bottom-4 z-[100] flex flex-col gap-2 max-w-sm"
       aria-live="polite"
       aria-label="Notifikasi"
     >

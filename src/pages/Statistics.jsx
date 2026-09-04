@@ -78,7 +78,7 @@ export default function Statistics() {
         ],
         backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
         borderRadius: 8,
-        barThickness: 40,
+        maxBarThickness: 40,
       },
     ],
   }), [tasks]);

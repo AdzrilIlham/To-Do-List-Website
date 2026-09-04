@@ -24,7 +24,7 @@ export default function Dashboard() {
       if (task.completed || notifiedRef.current.has(task.id)) return;
       const deadline = new Date(task.deadline);
       if (deadline > now && deadline < in24h) {
-        new Notification('TaskFlow - Deadline Mendekat!', {
+        new Notification('ToDoo - Deadline Mendekat!', {
           body: `"${task.title}" deadline dalam kurang dari 24 jam!`,
           icon: '/favicon-32x32.png',
         });
@@ -82,6 +82,7 @@ export default function Dashboard() {
           <StatisticsCard title="Belum Selesai" value={stats.pending} icon={FiClock} color="bg-yellow-500" />
           <StatisticsCard title="Deadline Hari Ini" value={stats.todayTasks} icon={FiCalendar} color="bg-blue-500" />
           <StatisticsCard title="Terlambat" value={stats.overdue} icon={FiAlertCircle} color="bg-red-500" />
+          <StatisticsCard title="Selesai Terlambat" value={stats.completedLate} icon={FiAlertCircle} color="bg-orange-500" />
           <StatisticsCard title="Progres" value={`${stats.progress}%`} icon={FiTrendingUp} color="bg-purple-500" />
         </div>
       )}
@@ -138,7 +139,7 @@ export default function Dashboard() {
         whileTap={{ scale: 0.9 }}
         onClick={() => setShowAddModal(true)}
         aria-label="Tambah tugas baru"
-        className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 w-14 h-14 bg-primary hover:bg-primary-dark text-white rounded-full shadow-xl shadow-primary/30 flex items-center justify-center z-10 cursor-pointer lg:hidden"
+        className="fixed bottom-24 right-4 sm:bottom-6 sm:right-6 w-14 h-14 bg-primary hover:bg-primary-dark text-white rounded-full shadow-xl shadow-primary/30 flex items-center justify-center z-10 cursor-pointer lg:hidden"
       >
         <FiPlus size={24} />
       </motion.button>

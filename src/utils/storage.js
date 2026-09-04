@@ -2,6 +2,7 @@ import { taskService } from '../services/taskService';
 
 const STORAGE_KEYS = {
   THEME: 'todo_theme',
+  NOTIF: 'todoo_notif_settings',
 };
 
 export const storage = {
@@ -40,6 +41,7 @@ export const storage = {
       Object.values(STORAGE_KEYS).forEach((key) => {
         localStorage.removeItem(key);
       });
+      localStorage.removeItem('todoo_notif_settings');
       return true;
     } catch (error) {
       console.error('Error clearing localStorage:', error);

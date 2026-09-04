@@ -49,6 +49,10 @@ export const filterTasks = (tasks, filters) => {
     if (filters.category && task.category !== filters.category) return false;
     if (filters.status === 'completed' && !task.completed) return false;
     if (filters.status === 'pending' && task.completed) return false;
+    if (filters.status === 'late') {
+      if (!(task.completed && task.completedAt && task.deadline &&
+        new Date(task.completedAt) > new Date(task.deadline))) return false;
+    }
 
     return true;
   });

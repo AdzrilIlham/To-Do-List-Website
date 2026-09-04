@@ -1,13 +1,25 @@
 import { useState, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiSun, FiMoon, FiTrash2, FiInfo, FiDatabase, FiDownload, FiUpload } from 'react-icons/fi';
+import { FiSun, FiMoon, FiTrash2, FiInfo, FiDatabase, FiDownload, FiUpload, FiBell, FiArchive, FiLogOut, FiPlay } from 'react-icons/fi';
 import { useTaskContext } from '../context/TaskContext';
+import { useAuth } from '../context/AuthContext';
 import { storage } from '../utils/storage';
+import { playSound } from '../hooks/useNotifications';
 import Button from '../components/ui/Button';
 import ConfirmDeleteModal from '../components/ui/ConfirmDeleteModal';
 
+const SOUND_OPTIONS = [
+  { value: 'beep', label: 'Beep' },
+  { value: 'chime', label: 'Chime' },
+  { value: 'ding', label: 'Ding' },
+  { value: 'bell', label: 'Bell' },
+  { value: 'none', label: 'Tanpa Suara' },
+];
+
 export default function Settings() {
-  const { theme, toggleTheme, tasks, addToast } = useTaskContext();
+  const { theme, toggleTheme, tasks, addToast, notifSettings, updateNotifSettings } = useTaskContext();
+  const { signOut } = useAuth();
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -24,7 +36,7 @@ export default function Settings() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `taskflow-backup-${new Date().toISOString().split('T')[0]}.json`;
+      a.download = `todoo-backup-${new Date().toISOString().split('T')[0]}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -105,6 +117,79 @@ export default function Settings() {
           className="bg-white dark:bg-dark-card rounded-2xl border border-gray-100 dark:border-dark-border p-5 shadow-sm"
         >
           <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center">
+              <FiBell size={18} className="text-pink-500" />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-dark-text">Pengingat</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Notifikasi sebelum deadline</p>
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Aktifkan Pengingat</span>
+              <button
+                onClick={() => updateNotifSettings({ enabled: !notifSettings.enabled })}
+                aria-label={notifSettings.enabled ? 'Nonaktifkan pengingat' : 'Aktifkan pengingat'}
+                className={`relative w-12 h-6 rounded-full transition-colors duration-300 cursor-pointer ${
+                  notifSettings.enabled ? 'bg-primary' : 'bg-gray-300'
+                }`}
+              >
+                <motion.div
+                  className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md"
+                  animate={{ x: notifSettings.enabled ? 24 : 0 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                />
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Jendela Pengingat</span>
+              <select
+                value={notifSettings.reminderHours}
+                onChange={(e) => updateNotifSettings({ reminderHours: Number(e.target.value) })}
+                className="px-3 py-1.5 bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer"
+              >
+                <option value={1}>1 jam sebelum</option>
+                <option value={6}>6 jam sebelum</option>
+                <option value={12}>12 jam sebelum</option>
+                <option value={24}>24 jam sebelum</option>
+                <option value={48}>48 jam sebelum</option>
+              </select>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Suara Notifikasi</span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => playSound(notifSettings.soundType)}
+                  aria-label="Coba suara"
+                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-surface transition-colors cursor-pointer"
+                  title="Coba suara"
+                >
+                  <FiPlay size={14} className="text-gray-400" />
+                </button>
+                <select
+                  value={notifSettings.soundType}
+                  onChange={(e) => updateNotifSettings({ soundType: e.target.value, sound: e.target.value !== 'none' })}
+                  className="px-3 py-1.5 bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer"
+                >
+                  {SOUND_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-white dark:bg-dark-card rounded-2xl border border-gray-100 dark:border-dark-border p-5 shadow-sm"
+        >
+          <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
               <FiDatabase size={18} className="text-blue-500" />
             </div>
@@ -120,7 +205,7 @@ export default function Settings() {
             </div>
             <div className="flex items-center justify-between py-2">
               <span className="text-sm text-gray-600 dark:text-gray-400">Penyimpanan</span>
-              <span className="text-sm font-semibold text-gray-900 dark:text-dark-text">Local Storage</span>
+              <span className="text-sm font-semibold text-gray-900 dark:text-dark-text">Supabase</span>
             </div>
           </div>
         </motion.div>
@@ -128,7 +213,7 @@ export default function Settings() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.15 }}
           className="bg-white dark:bg-dark-card rounded-2xl border border-gray-100 dark:border-dark-border p-5 shadow-sm"
         >
           <div className="flex items-center gap-3 mb-4">
@@ -163,7 +248,31 @@ export default function Settings() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
+          transition={{ delay: 0.2 }}
+          className="bg-white dark:bg-dark-card rounded-2xl border border-gray-100 dark:border-dark-border p-5 shadow-sm"
+        >
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+              <FiArchive size={18} className="text-orange-500" />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-dark-text">Arsip</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Lihat tugas yang sudah selesai</p>
+            </div>
+          </div>
+          <Link
+            to="/archive"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-dark-surface hover:bg-gray-200 dark:hover:bg-dark-border rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors"
+          >
+            <FiArchive size={14} />
+            Buka Arsip
+          </Link>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
           className="bg-white dark:bg-dark-card rounded-2xl border border-gray-100 dark:border-dark-border p-5 shadow-sm"
         >
           <div className="flex items-center gap-3 mb-4">
@@ -188,7 +297,7 @@ export default function Settings() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ delay: 0.3 }}
           className="bg-white dark:bg-dark-card rounded-2xl border border-gray-100 dark:border-dark-border p-5 shadow-sm"
         >
           <div className="flex items-center gap-3 mb-4">
@@ -203,7 +312,7 @@ export default function Settings() {
           <div className="space-y-2">
             <div className="flex items-center justify-between py-1">
               <span className="text-sm text-gray-600 dark:text-gray-400">Nama Aplikasi</span>
-              <span className="text-sm font-semibold text-gray-900 dark:text-dark-text">TaskFlow</span>
+              <span className="text-sm font-semibold text-gray-900 dark:text-dark-text">ToDoo</span>
             </div>
             <div className="flex items-center justify-between py-1">
               <span className="text-sm text-gray-600 dark:text-gray-400">Versi</span>
@@ -214,6 +323,21 @@ export default function Settings() {
               <span className="text-sm text-gray-900 dark:text-dark-text">React + Vite + Tailwind</span>
             </div>
           </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          className="bg-white dark:bg-dark-card rounded-2xl border border-red-200 dark:border-red-800/30 p-5 shadow-sm"
+        >
+          <button
+            onClick={signOut}
+            className="w-full flex items-center justify-center gap-2 py-3 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl text-sm font-semibold text-red-600 dark:text-red-400 transition-colors cursor-pointer"
+          >
+            <FiLogOut size={18} />
+            Keluar
+          </button>
         </motion.div>
       </div>
 

@@ -46,7 +46,7 @@ export function Register() {
             Buat Akun Baru
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-            Mulai kelola tugas Anda dengan TaskFlow
+            Mulai kelola tugas Anda dengan ToDoo
           </p>
         </div>
         {error && (

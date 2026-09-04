@@ -86,6 +86,11 @@ export const isPastDue = (dateString) => {
   return date < now;
 };
 
+export const wasCompletedLate = (task) => {
+  return task.completed && task.completedAt && task.deadline &&
+    new Date(task.completedAt) > new Date(task.deadline);
+};
+
 export const isDueSoon = (dateString, hours = 24) => {
   const now = new Date();
   const date = new Date(dateString);
@@ -93,6 +98,18 @@ export const isDueSoon = (dateString, hours = 24) => {
   const diffMs = date.getTime() - now.getTime();
   const diffHours = diffMs / (1000 * 60 * 60);
   return diffHours > 0 && diffHours <= hours;
+};
+
+export const toLocalDatetimeString = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return '';
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
 };
 
 export const getPriorityColor = (priority) => {
@@ -121,7 +138,7 @@ export const getCategoryColor = (category) => {
 export const getDefaultTasks = () => [
   {
     id: generateId(),
-    title: 'Selamat Datang di TaskFlow!',
+    title: 'Selamat Datang di ToDoo!',
     description: 'Ini adalah tugas contoh. Kamu bisa menghapusnya dan menambahkan tugas baru.',
     deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     priority: 'low',

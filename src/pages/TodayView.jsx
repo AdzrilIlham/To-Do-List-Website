@@ -59,7 +59,7 @@ export default function TodayView() {
         </motion.button>
       </div>
 
-      <div className="grid grid-cols-3 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -152,7 +152,7 @@ export default function TodayView() {
         whileTap={{ scale: 0.9 }}
         onClick={() => setShowAddModal(true)}
         aria-label="Tambah tugas baru"
-        className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 w-14 h-14 bg-primary hover:bg-primary-dark text-white rounded-full shadow-xl shadow-primary/30 flex items-center justify-center z-10 cursor-pointer lg:hidden"
+        className="fixed bottom-24 right-4 sm:bottom-6 sm:right-6 w-14 h-14 bg-primary hover:bg-primary-dark text-white rounded-full shadow-xl shadow-primary/30 flex items-center justify-center z-10 cursor-pointer lg:hidden"
       >
         <FiPlus size={24} />
       </motion.button>

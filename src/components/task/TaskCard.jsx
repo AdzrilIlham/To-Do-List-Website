@@ -2,7 +2,7 @@ import { useState, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiEdit2, FiTrash2, FiClock, FiCheck, FiAlertTriangle, FiRepeat, FiFileText } from 'react-icons/fi';
-import { formatShortDate, isDueSoon, isPastDue, getPriorityColor, getCategoryColor } from '../../utils/helper';
+import { formatShortDate, isDueSoon, isPastDue, getPriorityColor, getCategoryColor, wasCompletedLate } from '../../utils/helper';
 import { getPriorityLabel, getCategoryLabel } from '../../utils/filter';
 import ConfirmDeleteModal from '../ui/ConfirmDeleteModal';
 import { useTaskContext } from '../../context/TaskContext';
@@ -131,6 +131,11 @@ const TaskCard = memo(function TaskCard({ task, index = 0, onEdit, selected, onS
                   <FiFileText size={12} />
                 </span>
               )}
+              {wasCompletedLate(task) && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400">
+                  Terlambat
+                </span>
+              )}
               <span className={`inline-flex items-center gap-1 text-[10px] sm:text-xs ${pastDue && !task.completed ? 'text-red-500 font-medium' : 'text-gray-400 dark:text-gray-500'}`}>
                 <FiClock size={12} />
                 {formatShortDate(task.deadline)}
@@ -138,7 +143,7 @@ const TaskCard = memo(function TaskCard({ task, index = 0, onEdit, selected, onS
             </div>
           </div>
 
-          <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex flex-col gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
             <button
               onClick={() => onEdit(task)}
               aria-label={`Edit ${task.title}`}

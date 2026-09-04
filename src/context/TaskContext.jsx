@@ -7,10 +7,12 @@ const TaskContext = createContext(null);
 
 const MAX_TOASTS = 5;
 
+const NOTIF_DEFAULTS = { enabled: true, reminderHours: 24, sound: true, soundType: 'beep' };
+
 export function TaskProvider({ children }) {
   const taskData = useTasks();
   const [theme, setTheme] = useLocalStorage(STORAGE_KEYS.THEME, 'light');
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [notifSettings, setNotifSettings] = useLocalStorage(STORAGE_KEYS.NOTIF, NOTIF_DEFAULTS);
   const [toasts, setToasts] = useState([]);
 
   const addToast = useCallback((message, type = 'success', action = null) => {
@@ -32,12 +34,16 @@ export function TaskProvider({ children }) {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   }, [setTheme]);
 
+  const updateNotifSettings = useCallback((updates) => {
+    setNotifSettings((prev) => ({ ...prev, ...updates }));
+  }, [setNotifSettings]);
+
   const value = {
     ...taskData,
     theme,
     toggleTheme,
-    sidebarOpen,
-    setSidebarOpen,
+    notifSettings,
+    updateNotifSettings,
     toasts,
     addToast,
     removeToast,

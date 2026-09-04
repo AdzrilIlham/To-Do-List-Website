@@ -4,12 +4,14 @@ import { useTaskContext } from './context/TaskContext';
 import { useAuth } from './context/AuthContext';
 import Sidebar from './components/layout/Sidebar';
 import Navbar from './components/layout/Navbar';
+import BottomNav from './components/layout/BottomNav';
 import Toast from './components/ui/Toast';
 import Dashboard from './pages/Dashboard';
 import NotFound from './pages/NotFound';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Onboarding from './components/ui/Onboarding';
+import useNotifications from './hooks/useNotifications';
 
 const TodayView = lazy(() => import('./pages/TodayView'));
 const Calendar = lazy(() => import('./pages/Calendar'));
@@ -50,6 +52,14 @@ function ProtectedRoute({ children }) {
 function AppContent() {
   const { theme } = useTaskContext();
 
+  useNotifications();
+
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
+
   useEffect(() => {
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
@@ -73,7 +83,7 @@ function AppContent() {
               <Sidebar />
               <div className="lg:ml-64 min-h-screen">
                 <Navbar />
-                <main id="main-content" className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto" tabIndex={-1}>
+                <main id="main-content" className="p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8 max-w-7xl mx-auto" tabIndex={-1}>
                   <Suspense fallback={<PageLoader />}>
                     <Routes>
                       <Route path="/" element={<Dashboard />} />
@@ -88,6 +98,7 @@ function AppContent() {
                   </Suspense>
                 </main>
               </div>
+              <BottomNav />
               <Toast />
               <Onboarding />
             </div>

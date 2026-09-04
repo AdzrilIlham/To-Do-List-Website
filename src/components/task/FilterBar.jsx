@@ -82,7 +82,7 @@ export default function FilterBar() {
         <select
           value={filters.priority}
           onChange={(e) => handleChange('priority', e.target.value)}
-          className="px-3 py-1.5 bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer"
+          className="px-3 py-1.5 bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer max-w-full truncate"
           aria-label="Filter prioritas"
         >
           <option value="">Semua Prioritas</option>
@@ -96,7 +96,7 @@ export default function FilterBar() {
         <select
           value={filters.category}
           onChange={(e) => handleChange('category', e.target.value)}
-          className="px-3 py-1.5 bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer"
+          className="px-3 py-1.5 bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer max-w-full truncate"
           aria-label="Filter kategori"
         >
           <option value="">Semua Kategori</option>
@@ -110,12 +110,13 @@ export default function FilterBar() {
         <select
           value={filters.status}
           onChange={(e) => handleChange('status', e.target.value)}
-          className="px-3 py-1.5 bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer"
+          className="px-3 py-1.5 bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer max-w-full truncate"
           aria-label="Filter status"
         >
           <option value="">Semua Status</option>
           <option value="pending">Belum Selesai</option>
           <option value="completed">Selesai</option>
+          <option value="late">Terlambat</option>
         </select>
 
         <div className="hidden sm:block w-px h-5 bg-gray-200 dark:bg-dark-border" />

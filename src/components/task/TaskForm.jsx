@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FiCalendar, FiFlag, FiTag, FiFileText, FiRepeat, FiX, FiPlus } from 'react-icons/fi';
 import { CATEGORIES, PRIORITIES } from '../../utils/filter';
-import { generateId } from '../../utils/helper';
+import { generateId, toLocalDatetimeString } from '../../utils/helper';
 import Button from '../ui/Button';
 
 const initialForm = {
@@ -30,7 +30,7 @@ export default function TaskForm({ task, onSubmit, onCancel }) {
       setForm({
         title: task.title || '',
         description: task.description || '',
-        deadline: task.deadline ? new Date(task.deadline).toISOString().slice(0, 16) : '',
+        deadline: task.deadline ? toLocalDatetimeString(task.deadline) : '',
         priority: task.priority || 'medium',
         category: task.category || 'lainnya',
         notes: task.notes || '',

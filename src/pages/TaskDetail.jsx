@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiArrowLeft, FiCalendar, FiFlag, FiTag, FiClock, FiCheck, FiEdit2, FiRepeat, FiFileText } from 'react-icons/fi';
 import { useTaskContext } from '../context/TaskContext';
-import { formatDate, isPastDue, isDueSoon, getPriorityColor, getCategoryColor, formatRelative } from '../utils/helper';
+import { formatDate, isPastDue, isDueSoon, getPriorityColor, getCategoryColor, formatRelative, wasCompletedLate } from '../utils/helper';
 import { getPriorityLabel, getCategoryLabel } from '../utils/filter';
 import Button from '../components/ui/Button';
 
@@ -136,7 +136,7 @@ export default function TaskDetail() {
               <div>
                 <p className="text-xs text-gray-400 dark:text-gray-500">Status</p>
                 <p className={`text-sm font-semibold ${task.completed ? 'text-green-500' : pastDue ? 'text-red-500' : dueSoon ? 'text-yellow-500' : 'text-gray-900 dark:text-dark-text'}`}>
-                  {task.completed ? 'Selesai' : pastDue ? 'Terlambat' : dueSoon ? 'Hampir Jatuh Tempo' : 'Berjalan'}
+                  {task.completed ? (wasCompletedLate(task) ? 'Selesai Terlambat' : 'Selesai') : pastDue ? 'Terlambat' : dueSoon ? 'Bentar lagi deadline, nih!' : 'Berjalan'}
                 </p>
               </div>
             </div>

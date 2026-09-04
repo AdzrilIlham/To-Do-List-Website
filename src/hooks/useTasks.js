@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { isToday, isPastDue } from '../utils/helper';
+import { isToday, isPastDue, wasCompletedLate } from '../utils/helper';
 import { filterTasks, sortTasks } from '../utils/filter';
 import { taskService } from '../services/taskService';
 import { useAuth } from '../context/AuthContext';
@@ -52,7 +52,8 @@ export function useTasks() {
     const overdue = tasks.filter((t) => !t.completed && isPastDue(t.deadline)).length;
     const todayTasks = tasks.filter((t) => isToday(t.deadline)).length;
     const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
-    return { total, completed, pending, todayTasks, overdue, progress };
+    const completedLate = tasks.filter((t) => wasCompletedLate(t)).length;
+    return { total, completed, pending, todayTasks, overdue, progress, completedLate };
   }, [tasks]);
 
   const addTask = useCallback(async (taskData) => {
