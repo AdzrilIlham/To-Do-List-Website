@@ -258,14 +258,14 @@ export function useTasks() {
     const currentTasks = [...tasks];
     setTasks([]);
     try {
-      await taskService.deleteAllTasks();
+      await taskService.deleteAllTasks(user?.id);
       setSelectedIds([]);
     } catch (err) {
       console.error('Gagal menghapus semua tugas:', err);
       setTasks(currentTasks);
       throw err;
     }
-  }, [tasks]);
+  }, [tasks, user?.id]);
 
   return {
     tasks,

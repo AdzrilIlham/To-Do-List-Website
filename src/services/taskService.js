@@ -127,12 +127,15 @@ export const taskService = {
     return (data || []).map(mapTaskFromSupabase);
   },
 
-  async deleteAllTasks() {
-    const { error } = await supabase
-      .from('tasks')
-      .delete()
-      .neq('id', '00000000-0000-0000-0000-000000000000');
+  async deleteAllTasks(userId) {
+    let query = supabase.from('tasks').delete();
+    if (userId) {
+      query = query.eq('user_id', userId);
+    } else {
+      query = query.neq('id', '00000000-0000-0000-0000-000000000000');
+    }
 
+    const { error } = await query;
     if (error) throw error;
     return true;
   },

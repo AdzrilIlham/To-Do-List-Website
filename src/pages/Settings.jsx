@@ -87,6 +87,30 @@ export default function Settings() {
     }
   };
 
+  const handleClearData = async () => {
+    try {
+      await clearAllTasks();
+      storage.clear();
+      addToast('Semua data tugas berhasil dihapus.', 'success');
+    } catch (err) {
+      console.error('Error clearing data:', err);
+      addToast('Gagal menghapus semua data tugas.', 'error');
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setIsDeletingAccount(true);
+    try {
+      await deleteAccount();
+      addToast('Akun Anda berhasil dihapus.', 'info');
+    } catch (err) {
+      console.error('Gagal menghapus akun:', err);
+      addToast(err.message || 'Gagal menghapus akun', 'error');
+    } finally {
+      setIsDeletingAccount(false);
+    }
+  };
+
   const handleExport = async () => {
     addToast('Menyiapkan file cadangan...', 'info');
     const result = await storage.exportData();
