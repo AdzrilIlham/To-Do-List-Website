@@ -87,59 +87,22 @@ export default function Settings() {
     }
   };
 
-  const handleTestPushNotification = async () => {
-    addToast('Menguji pemicuan push server...', 'info');
-    try {
-      const res = await fetch('https://jvnruhvnmvoofcbgvmsx.supabase.co/functions/v1/send-notifications');
-      const data = await res.json();
-      if (data.sent > 0) {
-        addToast(`Berhasil! ${data.sent} notifikasi tes dikirim. Tutup app untuk melihat banner.`, 'success');
-      } else {
-        addToast(`Info: ${data.message || 'Tidak ada tugas baru dikirim'}`, 'info');
-      }
-    } catch {
-      addToast('Gagal memicu pengujian notifikasi', 'error');
-    }
-  };
-
-  const handleClearData = async () => {
-    try {
-      await clearAllTasks();
-      storage.clear();
-      addToast('Semua data tugas berhasil dihapus.', 'success');
-    } catch {
-      addToast('Gagal menghapus semua data tugas.', 'error');
-    }
-  };
-
-  const handleDeleteAccount = async () => {
-    setIsDeletingAccount(true);
-    try {
-      await deleteAccount();
-      addToast('Akun Anda berhasil dihapus.', 'info');
-    } catch (err) {
-      console.error('Gagal menghapus akun:', err);
-      addToast(err.message || 'Gagal menghapus akun', 'error');
-    } finally {
-      setIsDeletingAccount(false);
-    }
-  };
-
   const handleExport = async () => {
+    addToast('Menyiapkan file cadangan...', 'info');
     const result = await storage.exportData();
     if (result.success) {
       const blob = new Blob([JSON.stringify(result.data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `todoo-backup-${new Date().toISOString().split('T')[0]}.json`;
+      a.download = `todoo-cadangan-${new Date().toISOString().split('T')[0]}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      addToast('Data berhasil diexport!', 'success');
+      addToast('File cadangan berhasil diunduh!', 'success');
     } else {
-      addToast('Gagal export data', 'error');
+      addToast('Gagal membuat file cadangan', 'error');
     }
   };
 
@@ -147,14 +110,15 @@ export default function Settings() {
     const file = e.target.files[0];
     if (!file) return;
 
+    addToast('Memulihkan data tugas...', 'info');
     const reader = new FileReader();
     reader.onload = async (event) => {
       const result = await storage.importData(event.target.result, user?.id);
       if (result.success) {
         await refetchTasks();
-        addToast('Data berhasil diimport!', 'success');
+        addToast('Data tugas berhasil dipulihkan!', 'success');
       } else {
-        addToast(result.error || 'Gagal import data', 'error');
+        addToast(result.error || 'Format file cadangan tidak sesuai', 'error');
       }
     };
     reader.readAsText(file);
@@ -323,15 +287,6 @@ export default function Settings() {
               </button>
             </div>
 
-            {isSubscribed && (
-              <div className="pt-1">
-                <Button variant="secondary" size="sm" onClick={handleTestPushNotification} className="w-full text-xs">
-                  <FiBell size={12} />
-                  Tes Notifikasi Push Server
-                </Button>
-              </div>
-            )}
-
             <div>
               <span className="text-sm text-gray-600 dark:text-gray-400 block mb-2">Suara Notifikasi</span>
               <div className="space-y-2">
@@ -402,25 +357,32 @@ export default function Settings() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="bg-white dark:bg-dark-card rounded-2xl border border-gray-100 dark:border-dark-border p-5 shadow-sm"
+          className="bg-white dark:bg-dark-card rounded-2xl border border-gray-100 dark:border-dark-border p-5 shadow-sm space-y-4"
         >
-          <div className="flex items-center gap-3 mb-4">
+          <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
               <FiDownload size={18} className="text-green-500" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-dark-text">Backup & Restore</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Export atau import data tugas</p>
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-dark-text">Cadangan & Pemulihan (Backup & Restore)</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Amankan data tugas Anda atau pindahkan ke perangkat lain</p>
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Button variant="secondary" size="sm" onClick={handleExport} className="flex-1">
-              <FiDownload size={14} />
-              Export JSON
+
+          <div className="p-3.5 bg-gray-50 dark:bg-dark-surface/50 rounded-xl border border-gray-100 dark:border-dark-border/50 text-xs text-gray-600 dark:text-gray-400 space-y-1">
+            <p className="font-medium text-gray-800 dark:text-gray-200">💡 Petunjuk Singkat:</p>
+            <p>• <strong>Simpan Cadangan:</strong> Mengunduh file cadangan data tugas ke HP/Laptop Anda.</p>
+            <p>• <strong>Pulihkan Data:</strong> Memilih file cadangan yang sebelumnya pernah diunduh untuk mengembalikan tugas Anda.</p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 pt-1">
+            <Button variant="secondary" size="sm" onClick={handleExport} className="flex-1 justify-center py-2.5">
+              <FiDownload size={15} />
+              Simpan Cadangan Data
             </Button>
-            <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()} className="flex-1">
-              <FiUpload size={14} />
-              Import JSON
+            <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()} className="flex-1 justify-center py-2.5">
+              <FiUpload size={15} />
+              Pulihkan Data Cadangan
             </Button>
             <input
               ref={fileInputRef}
@@ -428,7 +390,7 @@ export default function Settings() {
               accept=".json"
               onChange={handleImport}
               className="hidden"
-              aria-label="Import file JSON"
+              aria-label="Pilih file cadangan data"
             />
           </div>
         </motion.div>
