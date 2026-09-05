@@ -127,6 +127,16 @@ export const taskService = {
     return (data || []).map(mapTaskFromSupabase);
   },
 
+  async deleteAllTasks() {
+    const { error } = await supabase
+      .from('tasks')
+      .delete()
+      .neq('id', '00000000-0000-0000-0000-000000000000');
+
+    if (error) throw error;
+    return true;
+  },
+
   async batchDeleteTasks(ids) {
     const { error } = await supabase
       .from('tasks')

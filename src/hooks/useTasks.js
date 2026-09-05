@@ -254,6 +254,19 @@ export function useTasks() {
 
   const clearSelection = useCallback(() => setSelectedIds([]), []);
 
+  const clearAllTasks = useCallback(async () => {
+    const currentTasks = [...tasks];
+    setTasks([]);
+    try {
+      await taskService.deleteAllTasks();
+      setSelectedIds([]);
+    } catch (err) {
+      console.error('Gagal menghapus semua tugas:', err);
+      setTasks(currentTasks);
+      throw err;
+    }
+  }, [tasks]);
+
   return {
     tasks,
     loading,
@@ -277,6 +290,7 @@ export function useTasks() {
     batchComplete,
     batchDelete,
     batchUncomplete,
+    clearAllTasks,
     stats,
   };
 }

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiSun, FiMoon, FiTrash2, FiInfo, FiDatabase, FiDownload, FiUpload, FiBell, FiArchive, FiLogOut, FiPlay, FiVolume2, FiSmartphone } from 'react-icons/fi';
+import { FiSun, FiMoon, FiTrash2, FiInfo, FiDatabase, FiDownload, FiUpload, FiBell, FiArchive, FiLogOut, FiPlay, FiVolume2, FiSmartphone, FiUserMinus } from 'react-icons/fi';
 import { useTaskContext } from '../context/TaskContext';
 import { useAuth } from '../context/AuthContext';
 import { storage } from '../utils/storage';
@@ -27,9 +27,11 @@ function getPlatform() {
 }
 
 export default function Settings() {
-  const { theme, toggleTheme, tasks, addToast, notifSettings, updateNotifSettings } = useTaskContext();
-  const { signOut } = useAuth();
+  const { theme, toggleTheme, tasks, addToast, notifSettings, updateNotifSettings, clearAllTasks, refetchTasks } = useTaskContext();
+  const { user, signOut, deleteAccount } = useAuth();
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [showDeleteAccountConfirm, setShowDeleteAccountConfirm] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const fileInputRef = useRef(null);
   const [notifPermission, setNotifPermission] = useState(
     () => (typeof Notification !== 'undefined' ? Notification.permission : 'denied')
@@ -81,14 +83,31 @@ export default function Settings() {
     }
   };
 
-  const handleClearData = () => {
-    storage.clear();
-    addToast('Semua data berhasil dihapus. Memuat ulang...', 'success');
-    setTimeout(() => window.location.reload(), 1000);
+  const handleClearData = async () => {
+    try {
+      await clearAllTasks();
+      storage.clear();
+      addToast('Semua data tugas berhasil dihapus.', 'success');
+    } catch {
+      addToast('Gagal menghapus semua data tugas.', 'error');
+    }
   };
 
-  const handleExport = () => {
-    const result = storage.exportData();
+  const handleDeleteAccount = async () => {
+    setIsDeletingAccount(true);
+    try {
+      await deleteAccount();
+      addToast('Akun Anda berhasil dihapus.', 'info');
+    } catch (err) {
+      console.error('Gagal menghapus akun:', err);
+      addToast(err.message || 'Gagal menghapus akun', 'error');
+    } finally {
+      setIsDeletingAccount(false);
+    }
+  };
+
+  const handleExport = async () => {
+    const result = await storage.exportData();
     if (result.success) {
       const blob = new Blob([JSON.stringify(result.data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -110,11 +129,11 @@ export default function Settings() {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (event) => {
-      const result = storage.importData(event.target.result);
+    reader.onload = async (event) => {
+      const result = await storage.importData(event.target.result, user?.id);
       if (result.success) {
-        addToast('Data berhasil diimport! Memuat ulang...', 'success');
-        setTimeout(() => window.location.reload(), 1000);
+        await refetchTasks();
+        addToast('Data berhasil diimport!', 'success');
       } else {
         addToast(result.error || 'Gagal import data', 'error');
       }
@@ -470,7 +489,7 @@ export default function Settings() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 }}
-          className="bg-white dark:bg-dark-card rounded-2xl border border-red-200 dark:border-red-800/30 p-5 shadow-sm"
+          className="bg-white dark:bg-dark-card rounded-2xl border border-red-200 dark:border-red-800/30 p-5 shadow-sm space-y-3"
         >
           <button
             onClick={signOut}
@@ -478,6 +497,15 @@ export default function Settings() {
           >
             <FiLogOut size={18} />
             Keluar
+          </button>
+
+          <button
+            onClick={() => setShowDeleteAccountConfirm(true)}
+            disabled={isDeletingAccount}
+            className="w-full flex items-center justify-center gap-2 py-3 bg-red-600 hover:bg-red-700 rounded-xl text-sm font-semibold text-white transition-colors cursor-pointer disabled:opacity-50"
+          >
+            <FiUserMinus size={18} />
+            Hapus Akun Permanen
           </button>
         </motion.div>
       </div>
@@ -490,6 +518,16 @@ export default function Settings() {
           handleClearData();
         }}
         taskTitle="SEMUA DATA TUGAS"
+      />
+
+      <ConfirmDeleteModal
+        isOpen={showDeleteAccountConfirm}
+        onClose={() => setShowDeleteAccountConfirm(false)}
+        onConfirm={() => {
+          setShowDeleteAccountConfirm(false);
+          handleDeleteAccount();
+        }}
+        taskTitle="AKUN ANDA DAN SEMUA DATA DI DATABASE"
       />
     </div>
   );

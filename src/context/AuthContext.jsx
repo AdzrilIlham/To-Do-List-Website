@@ -47,6 +47,12 @@ export function AuthProvider({ children }) {
     if (error) throw error;
   };
 
+  const deleteAccount = async () => {
+    const { error } = await supabase.rpc('delete_user_account');
+    if (error) throw error;
+    await signOut();
+  };
+
   const value = {
     user,
     session,
@@ -54,6 +60,7 @@ export function AuthProvider({ children }) {
     signUp,
     signIn,
     signOut,
+    deleteAccount,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

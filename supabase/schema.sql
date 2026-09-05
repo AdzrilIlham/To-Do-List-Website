@@ -92,3 +92,17 @@ CREATE POLICY "Users can view their own notification logs"
   ON public.notifications_log FOR ALL
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
+
+-- ============================================================
+-- RPC FUNCTION FOR DELETING USER ACCOUNT
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION public.delete_user_account()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  DELETE FROM auth.users WHERE id = auth.uid();
+END;
+$$;

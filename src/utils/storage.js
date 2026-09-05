@@ -66,7 +66,7 @@ export const storage = {
     }
   },
 
-  async importData(jsonString) {
+  async importData(jsonString, userId) {
     try {
       const data = JSON.parse(jsonString);
       if (!data || typeof data !== 'object') {
@@ -75,7 +75,7 @@ export const storage = {
 
       if (Array.isArray(data.todo_tasks)) {
         for (const task of data.todo_tasks) {
-          await taskService.createTask(task);
+          await taskService.createTask(task, userId);
         }
       }
 
