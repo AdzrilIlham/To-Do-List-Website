@@ -1,7 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useTaskContext } from '../context/TaskContext';
 import { useAuth } from '../context/AuthContext';
-import { supabase } from '../lib/supabase';
 
 const STORAGE_KEY = 'todoo_notif_settings';
 
@@ -127,12 +126,6 @@ export default function useNotifications() {
       const diffHours = diffMs / (1000 * 60 * 60);
 
       if (diffHours > 0 && diffHours <= 24) {
-        const { error: logError } = await supabase
-          .from('notifications_log')
-          .insert({ task_id: task.id, user_id: user.id });
-
-        if (logError) continue;
-
         const body = diffHours <= 1
           ? `"${task.title}" deadline dalam kurang dari 1 jam!`
           : `"${task.title}" deadline dalam ${Math.ceil(diffHours)} jam lagi!`;
