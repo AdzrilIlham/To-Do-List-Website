@@ -8,23 +8,17 @@ const VAPID_EMAIL = Deno.env.get("VAPID_EMAIL") || "mailto:admin@todoo.app";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const APP_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("APP_SERVICE_ROLE_KEY") || "";
 
-if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
-  webpush.setVapidDetails(
-    VAPID_EMAIL,
-    VAPID_PUBLIC_KEY,
-    VAPID_PRIVATE_KEY
-  );
-}
-
-async function sendPushNotification(subscriptionInfo: Record<string, unknown>, title: string, body: string): Promise<boolean> {
+async function sendPushNotification(subscriptionInfo: Record<string, unknown>, title: string, body: string): Promise<{ success: boolean; error?: string }> {
   const payload = JSON.stringify({ title, body, icon: "/favicon-32x32.png", badge: "/favicon-16x16.png" });
 
   try {
+    webpush.setVapidDetails(VAPID_EMAIL, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
     await webpush.sendNotification(subscriptionInfo as webpush.PushSubscription, payload);
-    return true;
-  } catch (err) {
-    console.error("Error sending push notification:", err);
-    return false;
+    return { success: true };
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : String(err);
+    console.error("Error sending push notification:", errorMsg);
+    return { success: false, error: errorMsg };
   }
 }
 
@@ -44,7 +38,7 @@ serve(async (_req) => {
       .lte("deadline", hours24Later.toISOString());
 
     if (tasksError || !tasks || tasks.length === 0) {
-      return new Response(JSON.stringify({ message: "No tasks to notify", count: 0 }), {
+      return new Response(JSON.stringify({ message: "No tasks to notify", count: 0, debug: { tasksError, vapidPublicKeySet: !!VAPID_PUBLIC_KEY } }), {
         headers: { "Content-Type": "application/json" },
       });
     }
@@ -58,7 +52,7 @@ serve(async (_req) => {
     const tasksToNotify = tasks.filter((t) => !sentTaskIds.has(t.id));
 
     if (tasksToNotify.length === 0) {
-      return new Response(JSON.stringify({ message: "All already notified", count: 0 }), {
+      return new Response(JSON.stringify({ message: "All already notified", count: 0, totalTasks: tasks.length }), {
         headers: { "Content-Type": "application/json" },
       });
     }
@@ -71,7 +65,7 @@ serve(async (_req) => {
       .in("user_id", userIds);
 
     if (!subscriptions || subscriptions.length === 0) {
-      return new Response(JSON.stringify({ message: "No subscriptions", count: 0 }), {
+      return new Response(JSON.stringify({ message: "No subscriptions", count: 0, tasksFound: tasksToNotify.length }), {
         headers: { "Content-Type": "application/json" },
       });
     }
@@ -84,6 +78,7 @@ serve(async (_req) => {
     }
 
     let sentCount = 0;
+    const errorsList: string[] = [];
     const logsToInsert: Array<{ task_id: string; user_id: string }> = [];
 
     for (const task of tasksToNotify) {
@@ -96,19 +91,28 @@ serve(async (_req) => {
         ? `"${task.title}" deadline dalam kurang dari 1 jam!`
         : `"${task.title}" deadline dalam ${Math.ceil(diffHours)} jam lagi!`;
 
+      let taskSentSuccessfully = false;
+
       for (const sub of subs) {
-        const ok = await sendPushNotification(sub, "ToDoo - Deadline Mendekat!", body);
-        if (ok) sentCount++;
+        const result = await sendPushNotification(sub, "ToDoo - Deadline Mendekat!", body);
+        if (result.success) {
+          sentCount++;
+          taskSentSuccessfully = true;
+        } else if (result.error) {
+          errorsList.push(result.error);
+        }
       }
 
-      logsToInsert.push({ task_id: task.id, user_id: task.user_id });
+      if (taskSentSuccessfully) {
+        logsToInsert.push({ task_id: task.id, user_id: task.user_id });
+      }
     }
 
     if (logsToInsert.length > 0) {
       await supabase.from("notifications_log").insert(logsToInsert);
     }
 
-    return new Response(JSON.stringify({ message: "Done", sent: sentCount, tasks: tasksToNotify.length }), {
+    return new Response(JSON.stringify({ message: "Done", sent: sentCount, tasks: tasksToNotify.length, errors: errorsList }), {
       headers: { "Content-Type": "application/json" },
     });
   } catch (err) {
