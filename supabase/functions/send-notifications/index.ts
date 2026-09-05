@@ -1,41 +1,29 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import webpush from "https://esm.sh/web-push@3.6.7";
 
 const VAPID_PUBLIC_KEY = Deno.env.get("VAPID_PUBLIC_KEY") || "";
 const VAPID_PRIVATE_KEY = Deno.env.get("VAPID_PRIVATE_KEY") || "";
 const VAPID_EMAIL = Deno.env.get("VAPID_EMAIL") || "mailto:admin@todoo.app";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
-const APP_SERVICE_ROLE_KEY = Deno.env.get("APP_SERVICE_ROLE_KEY") || "";
+const APP_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("APP_SERVICE_ROLE_KEY") || "";
 
-async function sendPushNotification(subscription: Record<string, unknown>, title: string, body: string): Promise<boolean> {
-  const { endpoint, keys } = subscription as { endpoint: string; keys: { p256dh: string; auth: string } };
+if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+  webpush.setVapidDetails(
+    VAPID_EMAIL,
+    VAPID_PUBLIC_KEY,
+    VAPID_PRIVATE_KEY
+  );
+}
 
+async function sendPushNotification(subscriptionInfo: Record<string, unknown>, title: string, body: string): Promise<boolean> {
   const payload = JSON.stringify({ title, body, icon: "/favicon-32x32.png", badge: "/favicon-16x16.png" });
 
-  const subscriptionInfo = {
-    endpoint,
-    expirationTime: null,
-    keys: { p256dh: keys.p256dh, auth: keys.auth },
-  };
-
   try {
-    const webPushUrl = "https://web-push-api.herokuapp.com/send";
-    const response = await fetch(webPushUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        subscription: subscriptionInfo,
-        payload,
-        vapid: {
-          publicKey: VAPID_PUBLIC_KEY,
-          privateKey: VAPID_PRIVATE_KEY,
-          subject: VAPID_EMAIL,
-        },
-      }),
-    });
-
-    return response.ok;
-  } catch {
+    await webpush.sendNotification(subscriptionInfo as webpush.PushSubscription, payload);
+    return true;
+  } catch (err) {
+    console.error("Error sending push notification:", err);
     return false;
   }
 }
