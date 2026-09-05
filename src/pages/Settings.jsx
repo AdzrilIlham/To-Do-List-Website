@@ -78,8 +78,12 @@ export default function Settings() {
           return;
         }
       }
-      const ok = await subscribe();
-      addToast(ok ? 'Notifikasi push aktif! Reminder akan muncul walau app tertutup.' : 'Gagal mengaktifkan push', ok ? 'success' : 'error');
+      const res = await subscribe();
+      if (res && res.success) {
+        addToast('Notifikasi push aktif! Reminder akan muncul walau app tertutup.', 'success');
+      } else {
+        addToast(res?.error || 'Gagal mengaktifkan push', 'error');
+      }
     }
   };
 

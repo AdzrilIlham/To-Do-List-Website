@@ -42,7 +42,14 @@ export default function usePushSubscription() {
   }, [user]);
 
   const subscribe = useCallback(async () => {
-    if (!user || !VAPID_PUBLIC_KEY) return false;
+    if (!user) {
+      console.error('Push subscribe error: User belum login');
+      return { success: false, error: 'User belum login' };
+    }
+    if (!VAPID_PUBLIC_KEY) {
+      console.error('Push subscribe error: VITE_VAPID_PUBLIC_KEY belum dikonfigurasi');
+      return { success: false, error: 'VAPID Public Key belum dikonfigurasi' };
+    }
 
     try {
       const reg = await navigator.serviceWorker.ready;
@@ -54,23 +61,33 @@ export default function usePushSubscription() {
       const { endpoint } = subscription;
       const keys = subscription.toJSON().keys;
 
-      const { error } = await supabase.from('push_subscriptions').upsert(
-        {
-          user_id: user.id,
-          endpoint,
-          p256dh: keys.p256dh,
-          auth: keys.auth,
-        },
-        { onConflict: 'user_id,endpoint' }
-      );
+      if (!keys?.p256dh || !keys?.auth) {
+        throw new Error('Kunci subscription dari browser tidak lengkap');
+      }
 
-      if (error) throw error;
+      await supabase
+        .from('push_subscriptions')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('endpoint', endpoint);
+
+      const { error } = await supabase.from('push_subscriptions').insert({
+        user_id: user.id,
+        endpoint,
+        p256dh: keys.p256dh,
+        auth: keys.auth,
+      });
+
+      if (error) {
+        console.error('Supabase DB push_subscriptions insert error:', error);
+        throw error;
+      }
 
       setIsSubscribed(true);
-      return true;
+      return { success: true };
     } catch (err) {
       console.error('Gagal subscribe push:', err);
-      return false;
+      return { success: false, error: err.message || 'Gagal mengaktifkan push notification' };
     }
   }, [user]);
 

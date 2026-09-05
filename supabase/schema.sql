@@ -72,6 +72,14 @@ CREATE POLICY "Users can manage their own subscriptions"
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
 
+-- Izinkan Service Role / Edge Function mengakses push subscriptions
+DROP POLICY IF EXISTS "Service Role full access on push_subscriptions" ON public.push_subscriptions;
+CREATE POLICY "Service Role full access on push_subscriptions"
+  ON public.push_subscriptions FOR ALL
+  TO service_role
+  USING (true)
+  WITH CHECK (true);
+
 -- ============================================================
 -- NOTIFICATIONS LOG (track sent notifications per task)
 -- ============================================================
