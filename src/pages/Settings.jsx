@@ -87,6 +87,21 @@ export default function Settings() {
     }
   };
 
+  const handleTestPushNotification = async () => {
+    addToast('Menguji pemicuan push server...', 'info');
+    try {
+      const res = await fetch('https://jvnruhvnmvoofcbgvmsx.supabase.co/functions/v1/send-notifications');
+      const data = await res.json();
+      if (data.sent > 0) {
+        addToast(`Berhasil! ${data.sent} notifikasi tes dikirim. Tutup app untuk melihat banner.`, 'success');
+      } else {
+        addToast(`Info: ${data.message || 'Tidak ada tugas baru dikirim'}`, 'info');
+      }
+    } catch {
+      addToast('Gagal memicu pengujian notifikasi', 'error');
+    }
+  };
+
   const handleClearData = async () => {
     try {
       await clearAllTasks();
@@ -307,6 +322,15 @@ export default function Settings() {
                 />
               </button>
             </div>
+
+            {isSubscribed && (
+              <div className="pt-1">
+                <Button variant="secondary" size="sm" onClick={handleTestPushNotification} className="w-full text-xs">
+                  <FiBell size={12} />
+                  Tes Notifikasi Push Server
+                </Button>
+              </div>
+            )}
 
             <div>
               <span className="text-sm text-gray-600 dark:text-gray-400 block mb-2">Suara Notifikasi</span>

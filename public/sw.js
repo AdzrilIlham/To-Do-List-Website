@@ -1,4 +1,4 @@
-const CACHE_NAME = 'todoo-v2';
+const CACHE_NAME = 'todoo-v3';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -70,10 +70,10 @@ self.addEventListener('push', (event) => {
 
   const options = {
     body: data.body || '',
-    icon: data.icon || '/favicon-32x32.png',
-    badge: data.badge || '/favicon-16x16.png',
+    icon: data.icon ? (data.icon.startsWith('http') ? data.icon : self.location.origin + data.icon) : self.location.origin + '/favicon-32x32.png',
+    badge: data.badge ? (data.badge.startsWith('http') ? data.badge : self.location.origin + data.badge) : self.location.origin + '/favicon-16x16.png',
     vibrate: [200, 100, 200],
-    tag: 'todoo-deadline',
+    tag: 'todoo-deadline-' + Date.now(),
     renotify: true,
     data: { url: '/' },
   };

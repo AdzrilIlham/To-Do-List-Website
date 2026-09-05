@@ -9,11 +9,22 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const APP_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("APP_SERVICE_ROLE_KEY") || "";
 
 async function sendPushNotification(subscriptionInfo: Record<string, unknown>, title: string, body: string): Promise<{ success: boolean; error?: string }> {
-  const payload = JSON.stringify({ title, body, icon: "/favicon-32x32.png", badge: "/favicon-16x16.png" });
+  const payload = JSON.stringify({
+    title,
+    body,
+    icon: "https://todoo-liart.vercel.app/favicon-32x32.png",
+    badge: "https://todoo-liart.vercel.app/favicon-16x16.png",
+  });
 
   try {
     webpush.setVapidDetails(VAPID_EMAIL, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
-    const res = await webpush.sendNotification(subscriptionInfo as webpush.PushSubscription, payload);
+    const options = {
+      headers: {
+        Urgency: "high",
+      },
+      TTL: 60,
+    };
+    const res = await webpush.sendNotification(subscriptionInfo as webpush.PushSubscription, payload, options);
     return { success: true, error: JSON.stringify(res) };
   } catch (err: unknown) {
     let errorMsg = String(err);
