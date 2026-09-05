@@ -39,7 +39,16 @@ async function sendPushNotification(subscriptionInfo: Record<string, unknown>, t
   }
 }
 
-serve(async (_req) => {
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
   try {
     const supabase = createClient(SUPABASE_URL, APP_SERVICE_ROLE_KEY);
 
@@ -55,9 +64,10 @@ serve(async (_req) => {
       .lte("deadline", hours24Later.toISOString());
 
     if (tasksError || !tasks || tasks.length === 0) {
-      return new Response(JSON.stringify({ message: "No tasks to notify", count: 0, debug: { tasksError, vapidPublicKeySet: !!VAPID_PUBLIC_KEY } }), {
-        headers: { "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ message: "No tasks to notify", count: 0, debug: { tasksError, vapidPublicKeySet: !!VAPID_PUBLIC_KEY } }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const { data: alreadySent } = await supabase
@@ -69,9 +79,10 @@ serve(async (_req) => {
     const tasksToNotify = tasks.filter((t) => !sentTaskIds.has(t.id));
 
     if (tasksToNotify.length === 0) {
-      return new Response(JSON.stringify({ message: "All already notified", count: 0, totalTasks: tasks.length }), {
-        headers: { "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ message: "All already notified", count: 0, totalTasks: tasks.length }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const userIds = [...new Set(tasksToNotify.map((t) => t.user_id))];
@@ -82,9 +93,10 @@ serve(async (_req) => {
       .in("user_id", userIds);
 
     if (!subscriptions || subscriptions.length === 0) {
-      return new Response(JSON.stringify({ message: "No subscriptions found for task owners", count: 0 }), {
-        headers: { "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ message: "No subscriptions found for task owners", count: 0 }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const subsByUser = new Map<string, Array<Record<string, unknown>>>();
@@ -129,13 +141,14 @@ serve(async (_req) => {
       await supabase.from("notifications_log").insert(logsToInsert);
     }
 
-    return new Response(JSON.stringify({ message: "Done", sent: sentCount, tasks: tasksToNotify.length, errors: errorsList }), {
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ message: "Done", sent: sentCount, tasks: tasksToNotify.length, errors: errorsList }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   } catch (err) {
-    return new Response(JSON.stringify({ error: String(err) }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ error: String(err) }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   }
 });
