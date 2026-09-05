@@ -13,10 +13,16 @@ async function sendPushNotification(subscriptionInfo: Record<string, unknown>, t
 
   try {
     webpush.setVapidDetails(VAPID_EMAIL, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
-    await webpush.sendNotification(subscriptionInfo as webpush.PushSubscription, payload);
-    return { success: true };
+    const res = await webpush.sendNotification(subscriptionInfo as webpush.PushSubscription, payload);
+    return { success: true, error: JSON.stringify(res) };
   } catch (err: unknown) {
-    const errorMsg = err instanceof Error ? err.message : String(err);
+    let errorMsg = String(err);
+    if (err && typeof err === 'object' && 'statusCode' in err) {
+      const e = err as { statusCode?: number; body?: string };
+      errorMsg = `HTTP ${e.statusCode}: ${e.body || ''}`;
+    } else if (err instanceof Error) {
+      errorMsg = err.message;
+    }
     console.error("Error sending push notification:", errorMsg);
     return { success: false, error: errorMsg };
   }
@@ -65,7 +71,7 @@ serve(async (_req) => {
       .in("user_id", userIds);
 
     if (!subscriptions || subscriptions.length === 0) {
-      return new Response(JSON.stringify({ message: "No subscriptions", count: 0, tasksFound: tasksToNotify.length }), {
+      return new Response(JSON.stringify({ message: "No subscriptions found for task owners", count: 0 }), {
         headers: { "Content-Type": "application/json" },
       });
     }
