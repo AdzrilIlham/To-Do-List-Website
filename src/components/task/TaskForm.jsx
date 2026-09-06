@@ -135,7 +135,7 @@ export default function TaskForm({ task, onSubmit, onCancel }) {
           aria-required="true"
           aria-invalid={!!errors.title}
           aria-describedby={errors.title ? 'title-error' : 'title-count'}
-          className={`w-full px-4 py-2.5 bg-gray-50 dark:bg-dark-surface border rounded-xl text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all ${
+          className={`w-full px-4 py-2.5 bg-gray-50 dark:bg-dark-surface border rounded-xl text-base sm:text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all ${
             errors.title ? 'border-red-400' : 'border-gray-200 dark:border-dark-border'
           }`}
         />
@@ -171,7 +171,7 @@ export default function TaskForm({ task, onSubmit, onCancel }) {
           maxLength={MAX_DESC}
           aria-describedby={errors.description ? 'desc-error' : 'desc-count'}
           aria-invalid={!!errors.description}
-          className="w-full px-4 py-2.5 bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-xl text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all resize-none"
+          className="w-full px-4 py-2.5 bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-xl text-base sm:text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all resize-none"
         />
         <div className="flex justify-between mt-1">
           {errors.description ? (
@@ -205,7 +205,7 @@ export default function TaskForm({ task, onSubmit, onCancel }) {
           aria-required="true"
           aria-invalid={!!errors.deadline}
           aria-describedby={errors.deadline ? 'deadline-error' : undefined}
-          className={`w-full px-4 py-2.5 bg-gray-50 dark:bg-dark-surface border rounded-xl text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all ${
+          className={`w-full px-4 py-2.5 bg-gray-50 dark:bg-dark-surface border rounded-xl text-base sm:text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all ${
             errors.deadline ? 'border-red-400' : 'border-gray-200 dark:border-dark-border'
           }`}
         />
@@ -231,7 +231,7 @@ export default function TaskForm({ task, onSubmit, onCancel }) {
             id="task-priority"
             value={form.priority}
             onChange={(e) => handleChange('priority', e.target.value)}
-            className="w-full px-4 py-2.5 bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-xl text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all cursor-pointer"
+            className="w-full px-4 py-2.5 bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-xl text-base sm:text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all cursor-pointer"
           >
             {PRIORITIES.map((p) => (
               <option key={p.value} value={p.value}>
@@ -250,7 +250,7 @@ export default function TaskForm({ task, onSubmit, onCancel }) {
             id="task-category"
             value={form.category}
             onChange={(e) => handleChange('category', e.target.value)}
-            className="w-full px-4 py-2.5 bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-xl text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all cursor-pointer"
+            className="w-full px-4 py-2.5 bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-xl text-base sm:text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all cursor-pointer"
           >
             {CATEGORIES.map((c) => (
               <option key={c.value} value={c.value}>
@@ -270,7 +270,7 @@ export default function TaskForm({ task, onSubmit, onCancel }) {
           id="task-recurrence"
           value={form.recurrence}
           onChange={(e) => handleChange('recurrence', e.target.value)}
-          className="w-full px-4 py-2.5 bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-xl text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all cursor-pointer"
+          className="w-full px-4 py-2.5 bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-xl text-base sm:text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all cursor-pointer"
         >
           {RECURRENCE_OPTIONS.map((r) => (
             <option key={r.value} value={r.value}>
@@ -292,7 +292,7 @@ export default function TaskForm({ task, onSubmit, onCancel }) {
           placeholder="Tambahkan catatan..."
           rows={3}
           maxLength={MAX_NOTES}
-          className="w-full px-4 py-2.5 bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-xl text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all resize-none"
+          className="w-full px-4 py-2.5 bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-xl text-base sm:text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all resize-none"
         />
         <div className="flex justify-end mt-1">
           <span className="text-[10px] text-gray-400">{form.notes.length}/{MAX_NOTES}</span>
@@ -310,7 +310,7 @@ export default function TaskForm({ task, onSubmit, onCancel }) {
             onChange={(e) => setSubtaskInput(e.target.value)}
             onKeyDown={handleSubtaskKeyDown}
             placeholder="Tambah subtask..."
-            className="flex-1 px-4 py-2.5 bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-xl text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+            className="flex-1 px-4 py-2.5 bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-xl text-base sm:text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
           />
           <button
             type="button"

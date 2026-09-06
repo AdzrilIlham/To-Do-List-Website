@@ -1,10 +1,11 @@
 import { NavLink } from 'react-router-dom';
-import { FiGrid, FiClock, FiCalendar, FiSettings } from 'react-icons/fi';
+import { FiGrid, FiClock, FiCalendar, FiSettings, FiInfo } from 'react-icons/fi';
 
 const tabs = [
   { to: '/', label: 'Dashboard', icon: FiGrid },
   { to: '/today', label: 'Hari Ini', icon: FiClock },
   { to: '/calendar', label: 'Kalender', icon: FiCalendar },
+  { to: '/about', label: 'Tentang', icon: FiInfo },
   { to: '/settings', label: 'Pengaturan', icon: FiSettings },
 ];
 

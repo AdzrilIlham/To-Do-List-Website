@@ -497,6 +497,15 @@ export default function Settings() {
               <span className="text-sm text-gray-900 dark:text-dark-text">React + Vite + Tailwind</span>
             </div>
           </div>
+          <div className="pt-2">
+            <Link
+              to="/about"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 rounded-xl text-sm font-semibold text-primary transition-colors"
+            >
+              <FiInfo size={14} />
+              Lihat Halaman Tentang Kami
+            </Link>
+          </div>
         </motion.div>
 
         <motion.div

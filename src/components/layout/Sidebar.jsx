@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiGrid, FiCalendar, FiBarChart2, FiSettings, FiClock, FiArchive } from 'react-icons/fi';
+import { FiGrid, FiCalendar, FiBarChart2, FiSettings, FiClock, FiArchive, FiInfo } from 'react-icons/fi';
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: FiGrid },
@@ -9,6 +9,7 @@ const navItems = [
   { to: '/calendar', label: 'Kalender', icon: FiCalendar },
   { to: '/statistics', label: 'Statistik', icon: FiBarChart2 },
   { to: '/settings', label: 'Pengaturan', icon: FiSettings },
+  { to: '/about', label: 'Tentang Kami', icon: FiInfo },
 ];
 
 export default function Sidebar() {

@@ -19,6 +19,7 @@ const Statistics = lazy(() => import('./pages/Statistics'));
 const Settings = lazy(() => import('./pages/Settings'));
 const Archive = lazy(() => import('./pages/Archive'));
 const TaskDetail = lazy(() => import('./pages/TaskDetail'));
+import About from './pages/About';
 
 function PageLoader() {
   return (
@@ -89,9 +90,9 @@ function AppContent() {
                 Loncat ke konten utama
               </a>
               <Sidebar />
-              <div className="lg:ml-64 min-h-screen">
+              <div className="lg:ml-64 min-h-screen flex flex-col">
                 <Navbar />
-                <main id="main-content" className="p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8 max-w-7xl mx-auto" tabIndex={-1}>
+                <main id="main-content" className="flex-1 p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8 max-w-7xl w-full mx-auto" tabIndex={-1}>
                   <Suspense fallback={<PageLoader />}>
                     <Routes>
                       <Route path="/" element={<Dashboard />} />
@@ -100,6 +101,7 @@ function AppContent() {
                       <Route path="/statistics" element={<Statistics />} />
                       <Route path="/archive" element={<Archive />} />
                       <Route path="/settings" element={<Settings />} />
+                      <Route path="/about" element={<About />} />
                       <Route path="/task/:id" element={<TaskDetail />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>

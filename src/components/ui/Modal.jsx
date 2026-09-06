@@ -9,9 +9,9 @@ const overlayVariants = {
 };
 
 const modalVariants = {
-  hidden: { opacity: 0, scale: 0.95, y: 20 },
-  visible: { opacity: 1, scale: 1, y: 0 },
-  exit: { opacity: 0, scale: 0.95, y: 20 },
+  hidden: { opacity: 0, y: '100%', scale: 1 },
+  visible: { opacity: 1, y: 0, scale: 1 },
+  exit: { opacity: 0, y: '100%', scale: 1 },
 };
 
 export default function Modal({ isOpen, onClose, title, children, size = 'md' }) {
