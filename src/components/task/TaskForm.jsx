@@ -120,7 +120,7 @@ export default function TaskForm({ task, onSubmit, onCancel }) {
   ];
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+    <form onSubmit={handleSubmit} className="space-y-4 w-full overflow-hidden" noValidate>
       <div>
         <label htmlFor="task-title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
           Judul <span className="text-red-500">*</span>
@@ -205,7 +205,7 @@ export default function TaskForm({ task, onSubmit, onCancel }) {
           aria-required="true"
           aria-invalid={!!errors.deadline}
           aria-describedby={errors.deadline ? 'deadline-error' : undefined}
-          className={`w-full px-4 py-2.5 bg-gray-50 dark:bg-dark-surface border rounded-xl text-base sm:text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all ${
+          className={`w-full max-w-full px-4 py-2.5 bg-gray-50 dark:bg-dark-surface border rounded-xl text-base sm:text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all box-border ${
             errors.deadline ? 'border-red-400' : 'border-gray-200 dark:border-dark-border'
           }`}
         />
@@ -221,8 +221,8 @@ export default function TaskForm({ task, onSubmit, onCancel }) {
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 min-w-0">
+        <div className="min-w-0">
           <label htmlFor="task-priority" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
             <FiFlag size={14} className="inline mr-1" />
             Prioritas
@@ -231,7 +231,7 @@ export default function TaskForm({ task, onSubmit, onCancel }) {
             id="task-priority"
             value={form.priority}
             onChange={(e) => handleChange('priority', e.target.value)}
-            className="w-full px-4 py-2.5 bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-xl text-base sm:text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all cursor-pointer"
+            className="w-full max-w-full px-4 py-2.5 bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-xl text-base sm:text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all cursor-pointer box-border"
           >
             {PRIORITIES.map((p) => (
               <option key={p.value} value={p.value}>
@@ -241,7 +241,7 @@ export default function TaskForm({ task, onSubmit, onCancel }) {
           </select>
         </div>
 
-        <div>
+        <div className="min-w-0">
           <label htmlFor="task-category" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
             <FiTag size={14} className="inline mr-1" />
             Kategori
@@ -250,7 +250,7 @@ export default function TaskForm({ task, onSubmit, onCancel }) {
             id="task-category"
             value={form.category}
             onChange={(e) => handleChange('category', e.target.value)}
-            className="w-full px-4 py-2.5 bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-xl text-base sm:text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all cursor-pointer"
+            className="w-full max-w-full px-4 py-2.5 bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-xl text-base sm:text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all cursor-pointer box-border"
           >
             {CATEGORIES.map((c) => (
               <option key={c.value} value={c.value}>
@@ -270,7 +270,7 @@ export default function TaskForm({ task, onSubmit, onCancel }) {
           id="task-recurrence"
           value={form.recurrence}
           onChange={(e) => handleChange('recurrence', e.target.value)}
-          className="w-full px-4 py-2.5 bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-xl text-base sm:text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all cursor-pointer"
+          className="w-full max-w-full px-4 py-2.5 bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-xl text-base sm:text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all cursor-pointer box-border"
         >
           {RECURRENCE_OPTIONS.map((r) => (
             <option key={r.value} value={r.value}>
@@ -303,14 +303,14 @@ export default function TaskForm({ task, onSubmit, onCancel }) {
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
           Subtasks
         </label>
-        <div className="flex gap-2">
+        <div className="flex gap-2 min-w-0">
           <input
             type="text"
             value={subtaskInput}
             onChange={(e) => setSubtaskInput(e.target.value)}
             onKeyDown={handleSubtaskKeyDown}
             placeholder="Tambah subtask..."
-            className="flex-1 px-4 py-2.5 bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-xl text-base sm:text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+            className="flex-1 min-w-0 px-4 py-2.5 bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-xl text-base sm:text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
           />
           <button
             type="button"
@@ -323,20 +323,20 @@ export default function TaskForm({ task, onSubmit, onCancel }) {
         {form.subtasks.length > 0 && (
           <ul className="mt-2 space-y-1">
             {form.subtasks.map((subtask) => (
-              <li key={subtask.id} className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 dark:bg-dark-surface rounded-lg">
+              <li key={subtask.id} className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 dark:bg-dark-surface rounded-lg min-w-0">
                 <input
                   type="checkbox"
                   checked={subtask.completed}
                   onChange={() => toggleSubtask(subtask.id)}
-                  className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                  className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer shrink-0"
                 />
-                <span className={`flex-1 text-sm ${subtask.completed ? 'line-through text-gray-400' : 'text-gray-700 dark:text-gray-200'}`}>
+                <span className={`flex-1 min-w-0 truncate text-sm ${subtask.completed ? 'line-through text-gray-400' : 'text-gray-700 dark:text-gray-200'}`}>
                   {subtask.text}
                 </span>
                 <button
                   type="button"
                   onClick={() => removeSubtask(subtask.id)}
-                  className="p-1 text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
+                  className="p-1 text-gray-400 hover:text-red-500 transition-colors cursor-pointer shrink-0"
                 >
                   <FiX size={14} />
                 </button>
